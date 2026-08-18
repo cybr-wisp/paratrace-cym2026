@@ -5,24 +5,8 @@ Reads .cha (CHAT-format) transcripts, extracts participant speech only,
 preserves all disfluency markers, maps each file to its clinical
 diagnosis from the corpus directory structure, and outputs a tidy CSV.
 
-Expected corpus layout:
-    pitt_corpus/
-        Control/
-            cookie/
-                001-0.cha
-                002-0.cha
-                ...
-        Dementia/
-            cookie/
-                011-0.cha
-                012-0.cha
-                ...
-        (optionally) MCI/
-            cookie/
-                ...
-
 Usage:
-    python cha_parser.py --corpus-dir ./pitt_corpus --output ./data/transcripts.csv
+    python cha_parser.py --corpus-dir ./data/raw/cookie_only --output ./data/processed/transcripts.csv
 """
 
 import argparse
@@ -51,8 +35,6 @@ LABEL_MAP: dict[str, str] = {
 
 
 def resolve_label(filepath: Path) -> str | None:
-    """Walk up the path and return a diagnosis label if any ancestor
-    directory matches a known group name."""
     for parent in filepath.parents:
         key = parent.name.lower().strip()
         if key in LABEL_MAP:
@@ -65,18 +47,18 @@ def resolve_label(filepath: Path) -> str | None:
 _CHAT_NOISE = re.compile(
     r"""
     \[%[^\]]*\]       |  # dependent-tier annotations
-    \[\+[^\]]*\]      |  # postcodes  [+ gram], [+ es]
+    \[\+[^\]]*\]      |  # postcodes
     \[\*[^\]]*\]      |  # error codes
-    \[=![^\]]*\]      |  # paralinguistic  [=! laughs]
+    \[=![^\]]*\]      |  # paralinguistic
     \[=\?[^\]]*\]     |  # best guess
     \[=\s[^\]]*\]     |  # replacement
-    <[^>]*>\s*\[//\]  |  # retraced material with correction
+    <[^>]*>\s*\[//\]  |  # retraced material
     \[/\]             |  # retrace marker
     \[//\]            |  # correction marker
     @s:\w+            |  # language markers
     @l                |  # letter markers
     @o                |  # onomatopoeia markers
-    \x15[^\x15]*\x15  |  # bullet / timing marks
+    \x15[^\x15]*\x15  |  # timing marks
     [‡†]              |  # special terminators
     \[<\d*\]          |  # overlap markers
     \[>\d*\]          |  # overlap markers
@@ -87,9 +69,9 @@ _CHAT_NOISE = re.compile(
     re.VERBOSE,
 )
 
-_FILLED_PAUSE = re.compile(r"&-(\w+)")     # &-uh -> uh
-_FRAGMENT = re.compile(r"&\+(\w+)")         # &+lit -> lit-
-_SHORTENING = re.compile(r"\((\w+)\)")      # (be)cause -> because
+_FILLED_PAUSE = re.compile(r"&-(\w+)")
+_FRAGMENT = re.compile(r"&\+(\w+)")
+_SHORTENING = re.compile(r"\((\w+)\)")
 _MULTI_SPACE = re.compile(r"\s{2,}")
 _TERMINATORS = re.compile(r"[.!?]+$")
 
@@ -105,52 +87,94 @@ def clean_utterance(raw: str) -> str:
     return text
 
 
+def _utterance_to_text(utt) -> str:
+    """Extract the raw text from a pylangacq Utterance object.
+
+    pylangacq 0.23 returns Utterance objects with a .tokens list.
+    Each token has a .word attribute. We join them to reconstruct
+    the spoken text.
+    """
+    # If it's already a string, return it
+    if isinstance(utt, str):
+        return utt
+
+    # Try to get text from tokens
+    try:
+        tokens = utt.tokens
+        if tokens:
+            words = []
+            for tok in tokens:
+                # Token objects have a .word attribute
+                try:
+                    w = tok.word
+                except AttributeError:
+                    w = str(tok)
+                if w:
+                    words.append(w)
+            return " ".join(words)
+    except AttributeError:
+        pass
+
+    # Try .tiers attribute
+    try:
+        if hasattr(utt, "tiers") and utt.tiers:
+            return str(utt.tiers)
+    except Exception:
+        pass
+
+    # Last resort: stringify, but this gives the repr we don't want
+    return ""
+
+
 # ── Participant speech extraction ──────────────────────────────────────
 
 def extract_participant_speech(
     reader: pylangacq.Reader,
 ) -> tuple[list[str], str]:
-    """Return (utterances, joined_text) for the *PAR participant only.
-
-    Preserves fillers, repeats, incomplete words -- everything that
-    constitutes a linguistic biomarker.
-    """
+    """Return (utterances, joined_text) for the *PAR participant only."""
     raw_utts: list[str] = []
 
-    # Try PAR first (standard Pitt Corpus code), fall back to all
     try:
-        all_utts = reader.utterances(participants="PAR")
+        all_utts = reader.utterances()
     except Exception:
-        try:
-            all_utts = reader.utterances()
-        except Exception:
-            return [], ""
+        return [], ""
 
-    # reader.utterances() returns list of lists (one per file).
-    # For a single-file reader that's one inner list.
+    # Flatten: utterances() returns list of lists (one per file)
+    flat_utts = []
     for item in all_utts:
         if isinstance(item, list):
-            raw_utts.extend(item)
+            flat_utts.extend(item)
         else:
-            raw_utts.append(item)
+            flat_utts.append(item)
 
-    utterances: list[str] = []
-    for raw in raw_utts:
-        if not isinstance(raw, str):
-            raw = str(raw)
-        cleaned = clean_utterance(raw)
+    for utt in flat_utts:
+        # Filter: only PAR (participant), not INV (investigator)
+        participant = None
+        try:
+            participant = utt.participant
+        except AttributeError:
+            pass
+
+        # Skip investigator utterances
+        if participant and participant.upper() == "INV":
+            continue
+
+        # Only keep PAR utterances (or unknown if no participant attr)
+        if participant and not participant.upper().startswith("PAR"):
+            continue
+
+        text = _utterance_to_text(utt)
+        cleaned = clean_utterance(text)
         if cleaned:
-            utterances.append(cleaned)
+            raw_utts.append(cleaned)
 
-    full_text = " ".join(utterances)
-    return utterances, full_text
+    full_text = " ".join(raw_utts)
+    return raw_utts, full_text
 
 
 # ── Corpus-level ingestion ─────────────────────────────────────────────
 
 def parse_corpus(corpus_dir: str | Path) -> list[dict]:
-    """Walk the corpus directory, parse every .cha file, and return a
-    list of record dicts ready for CSV / DataFrame conversion."""
     corpus_dir = Path(corpus_dir).resolve()
     cha_files = sorted(corpus_dir.rglob("*.cha"))
     log.info("Found %d .cha files under %s", len(cha_files), corpus_dir)
@@ -161,7 +185,7 @@ def parse_corpus(corpus_dir: str | Path) -> list[dict]:
     for fpath in cha_files:
         label = resolve_label(fpath)
         if label is None:
-            log.warning("Skipping %s -- cannot infer diagnosis from path", fpath)
+            log.warning("Skipping %s -- cannot infer diagnosis", fpath)
             skipped += 1
             continue
 
@@ -175,7 +199,7 @@ def parse_corpus(corpus_dir: str | Path) -> list[dict]:
         utterances, full_text = extract_participant_speech(reader)
 
         if not utterances:
-            log.warning("No participant speech found in %s", fpath)
+            log.warning("No participant speech in %s", fpath)
             skipped += 1
             continue
 
@@ -205,46 +229,31 @@ def _label_counts(records: list[dict]) -> dict[str, int]:
     return counts
 
 
-# ── CSV output ─────────────────────────────────────────────────────────
-
 FIELDNAMES = ["file", "diagnosis", "text", "utterances", "n_utts"]
 
 
 def write_csv(records: list[dict], output_path: str | Path) -> None:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
     with output_path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=FIELDNAMES)
         writer.writeheader()
         writer.writerows(records)
-
     log.info("Wrote %d rows to %s", len(records), output_path)
 
-
-# ── CLI ────────────────────────────────────────────────────────────────
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Parse DementiaBank Pitt Corpus .cha files into a CSV."
     )
-    parser.add_argument(
-        "--corpus-dir",
-        required=True,
-        help="Root directory of the Pitt Corpus (contains Control/, Dementia/, etc.)",
-    )
-    parser.add_argument(
-        "--output",
-        default="data/transcripts.csv",
-        help="Output CSV path (default: data/transcripts.csv)",
-    )
+    parser.add_argument("--corpus-dir", required=True)
+    parser.add_argument("--output", default="data/processed/transcripts.csv")
     args = parser.parse_args()
 
     records = parse_corpus(args.corpus_dir)
     if not records:
-        log.error("No records produced. Check corpus path and directory layout.")
+        log.error("No records produced.")
         raise SystemExit(1)
-
     write_csv(records, args.output)
 
 
