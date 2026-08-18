@@ -1,19 +1,38 @@
-﻿.env
+﻿# ── Private / restricted data (DementiaBank Pitt Corpus) ──
+data/raw/
+data/processed/
+data/rewrites/
+
+# ── Aggregate results are fine, but exclude large artifacts ──
+data/results/*.pkl
+data/results/*.joblib
+
+# ── Python ──
+.env
 venv/
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
-data/raw/*.cha
-data/raw/*.csv
-data/processed/*.csv
-data/rewrites/*.csv
-data/results/*.json
-data/results/*.png
+*.egg-info/
+dist/
+build/
+*.pkl
+*.joblib
+
+# ── Frontend ──
+frontend/node_modules/
+frontend/dist/
+
+# ── IDE / OS ──
 .vscode/
 .idea/
 .DS_Store
-frontend/node_modules/
-frontend/dist/
+Thumbs.db
 .ipynb_checkpoints/
-*.pkl
-*.joblib
+
+# ── Model artifacts ──
+*.pt
+*.bin
+*.onnx
+models/
