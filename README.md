@@ -6,6 +6,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Conference: CYM 2026](https://img.shields.io/badge/Conference-CYM%202026-green.svg)](https://cymottawa.com)
 
+## Architecture
+
+![ParaTrace system architecture](docs/paratrace-architecture.png)
+
 > *If AI makes everyone sound better, could it accidentally hide signs of diseases like Alzheimer's?*
 
 ---
