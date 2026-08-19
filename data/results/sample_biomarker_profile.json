@@ -1,0 +1,80 @@
+{
+  "title": "Sample Biomarker Profile Document",
+  "description": "This is what a clinician would receive alongside the polished AI note.",
+  "profiles": [
+    {
+      "patient_type": "Dementia patient",
+      "file": "Dementia\\001-0.cha",
+      "biomarkers": {
+        "lexical_diversity": {
+          "ttr": 0.61,
+          "mtld": 45.9,
+          "mattr": 0.786
+        },
+        "repetition": {
+          "content_word_repetition_rate": 0.136,
+          "bigram_repetition_rate": 0.071
+        },
+        "semantic_coherence": {
+          "local_coherence": 0.289,
+          "global_coherence": 0.545
+        },
+        "syntactic_complexity": {
+          "mean_parse_depth": 2.5,
+          "clause_density": 0.3
+        },
+        "idea_density": 0.329,
+        "word_finding": {
+          "filler_rate": 0.0132,
+          "incomplete_word_rate": 0.0
+        },
+        "vocabulary_sophistication": {
+          "brunets_w": 6.74,
+          "honores_r": 2636.7
+        },
+        "content_units": {
+          "ciu_ratio": 0.329,
+          "pronoun_noun_ratio": 0.438
+        }
+      },
+      "clinical_flag": "Elevated cognitive decline indicators detected"
+    },
+    {
+      "patient_type": "Control patient",
+      "file": "Control\\002-0.cha",
+      "biomarkers": {
+        "lexical_diversity": {
+          "ttr": 0.577,
+          "mtld": 43.3,
+          "mattr": 0.832
+        },
+        "repetition": {
+          "content_word_repetition_rate": 0.159,
+          "bigram_repetition_rate": 0.032
+        },
+        "semantic_coherence": {
+          "local_coherence": 0.2,
+          "global_coherence": 0.432
+        },
+        "syntactic_complexity": {
+          "mean_parse_depth": 3.2,
+          "clause_density": 0.39
+        },
+        "idea_density": 0.414,
+        "word_finding": {
+          "filler_rate": 0.0,
+          "incomplete_word_rate": 0.0
+        },
+        "vocabulary_sophistication": {
+          "brunets_w": 7.96,
+          "honores_r": 2633.4
+        },
+        "content_units": {
+          "ciu_ratio": 0.414,
+          "pronoun_noun_ratio": 0.324
+        }
+      },
+      "clinical_flag": "Within normal range"
+    }
+  ]
+}
