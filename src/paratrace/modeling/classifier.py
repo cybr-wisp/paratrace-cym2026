@@ -329,7 +329,7 @@ def run_stats(features_dir: str, output_dir: str) -> dict:
                     "pct_change": round(float(pct), 2),
                     "cohens_d": round(float(d), 3),
                     "p_value": round(float(pval), 6),
-                    "significant": pval < 0.05,
+                    "significant": bool(pval < 0.05),
                 }
 
             sig_count = sum(1 for f in results[key].values() if f["significant"])
