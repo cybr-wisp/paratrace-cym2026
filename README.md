@@ -27,7 +27,7 @@ Ontario is deploying AI clinical scribes across its healthcare system (18 vendor
 
 We ran 552 clinically labeled transcripts from the DementiaBank Pitt Corpus through two LLM backends at four progressive intervention levels (4,416 total rewrites) and measured what happened to 20 linguistic biomarkers.
 
-![Diagnostic Signal Erasure Across AI Rewrite Levels](figures/degradation_curve.png)
+![Diagnostic Signal Erasure Across AI Rewrite Levels](docs/degradation_curve.png)
 
 | Level | Description | Anthropic | OpenAI | Average |
 |-------|------------|-----------|--------|---------|
@@ -39,7 +39,7 @@ We ran 552 clinically labeled transcripts from the DementiaBank Pitt Corpus thro
 
 At Level 4, both backends independently converged to chance (50%), confirming biomarker erasure is architecture-general. Wilcoxon testing showed 19 of 20 features significantly altered (p < 0.05) by Level 2.
 
-![The What vs How Gap](figures/what_vs_how.png)
+![The What vs How Gap](docs/what_vs_how.png)
 
 Semantic similarity remained above 83% even as diagnostic accuracy collapsed. The AI preserved *what* patients said while erasing *how* they said it.
 
@@ -70,7 +70,7 @@ Under this design, 100% of diagnostic signal is retained without sacrificing doc
 
 ## Feature importance
 
-![Which Biomarkers Drive Classification](figures/feature_importance.png)
+![Which Biomarkers Drive Classification](docs/feature_importance.png)
 
 Global coherence, pronoun-to-noun ratio, and CIU ratio are the strongest diagnostic predictors. These are precisely the features AI rewriting inflates most aggressively.
 
@@ -127,5 +127,13 @@ The DementiaBank Pitt Corpus is access-controlled to protect participant privacy
 ```
 
 ## License
+[MIT](LICENSE)
 
-MIT
+
+---
+
+<div align="center">
+
+Built with ☕ by [Marie](https://github.com/cybr-wisp)
+
+</div>
