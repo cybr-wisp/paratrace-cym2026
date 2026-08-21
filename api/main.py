@@ -28,6 +28,11 @@ from starlette.concurrency import run_in_threadpool
 from paratrace.features.extractor import embedder, extract_all
 from paratrace.rewriting.rewriting import BACKENDS, PROMPTS
 
+import os
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse
+
 app = FastAPI(title="ParaTrace Demo API", version="3.0.0")
 app.add_middleware(
     CORSMiddleware,
@@ -321,3 +326,21 @@ async def full_trace(payload: TraceRequest) -> dict[str, Any]:
                 "provider connectivity/rate limits, and local model assets."
             ),
         ) from exc
+# Serve the built frontend in production
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+if _FRONTEND_DIR.is_dir():
+    _ASSETS_DIR = _FRONTEND_DIR / "assets"
+    if _ASSETS_DIR.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(_ASSETS_DIR)), name="assets")
+
+    _SOURCES_DIR = _FRONTEND_DIR / "sources"
+    if _SOURCES_DIR.is_dir():
+        app.mount("/sources", StaticFiles(directory=str(_SOURCES_DIR)), name="sources")
+
+    @app.get("/{path:path}")
+    async def serve_frontend(path: str):
+        file_path = _FRONTEND_DIR / path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(_FRONTEND_DIR / "index.html"))
