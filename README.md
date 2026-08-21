@@ -14,6 +14,24 @@
 [![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)](https://anthropic.com/)
 [![Hugging Face](https://img.shields.io/badge/Sentence%20Transformers-FFD21E?logo=huggingface&logoColor=black)](https://www.sbert.net/)
 [![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?logo=scipy&logoColor=white)](https://scipy.org/)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Conference](https://img.shields.io/badge/Conference-CYM%202026-orange)
+
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikit-learn&logoColor=white)
+![spaCy](https://img.shields.io/badge/spaCy-09A3D5?logo=spacy&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
+![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
+![Sentence Transformers](https://img.shields.io/badge/Sentence%20Transformers-FFD43B?logo=huggingface&logoColor=black)
+![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?logo=scipy&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 
 </div>
 
