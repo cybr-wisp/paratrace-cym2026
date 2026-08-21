@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: paratrace
+    runtime: docker
+    plan: standard  # needs ~1GB RAM for torch + sentence-transformers
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PYTHONPATH
+        value: /app/src
