@@ -1,11 +1,10 @@
 // API client -- swap BASE_URL to "" when running behind Vite proxy,
 // or "http://localhost:8000" for direct access.
-
 const BASE_URL = "";
 
 export interface AnalyzeResponse {
   features: Record<string, number | null>;
-  prediction: { label: string; confidence: number };
+  prediction: { label: string; confidence: number } | null;
   category_scores: Record<string, number>;
 }
 
@@ -25,35 +24,19 @@ export interface CompareResponse {
 }
 
 export async function analyzeText(text: string): Promise<AnalyzeResponse> {
-  const res = await fetch(`${BASE_URL}/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
-  });
+  const res = await fetch(`${BASE_URL}/analyze`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
   if (!res.ok) throw new Error(`Analyze failed: ${res.status}`);
   return res.json();
 }
 
-export async function rewriteText(
-  text: string, level: number, backend: string
-): Promise<RewriteResponse> {
-  const res = await fetch(`${BASE_URL}/rewrite`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, level, backend }),
-  });
+export async function rewriteText(text: string, level: number, backend: string): Promise<RewriteResponse> {
+  const res = await fetch(`${BASE_URL}/rewrite`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, level, backend }) });
   if (!res.ok) throw new Error(`Rewrite failed: ${res.status}`);
   return res.json();
 }
 
-export async function compareText(
-  text: string, level: number, backend: string
-): Promise<CompareResponse> {
-  const res = await fetch(`${BASE_URL}/compare`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, level, backend }),
-  });
+export async function compareText(text: string, level: number, backend: string): Promise<CompareResponse> {
+  const res = await fetch(`${BASE_URL}/compare`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, level, backend }) });
   if (!res.ok) throw new Error(`Compare failed: ${res.status}`);
   return res.json();
 }

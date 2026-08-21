@@ -1,208 +1,262 @@
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
-import { SAMPLE, SAMPLE_REWRITE } from "../types/analysis";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { analyzeText, compareText, type AnalyzeResponse } from "../api/client";
+import { FEATURE_LABELS, SAMPLE, SAMPLE_REWRITE } from "../types/analysis";
+import { GUIDED_TEXT, L2_FEATURE_CHANGES, REWRITE_LEVELS, STUDY_ACCURACY } from "../data/study";
+import { CategoryRadar, FeatureDeltaChart, LiveHistoryChart, LiveProxyBars, StudyAccuracyChart } from "../components/ScientificCharts";
 
 type Props = { onOpenResearch: () => void };
-type DemoMode = "guided" | "live";
+type DemoMode = "full" | "live";
+type Backend = "openai" | "anthropic";
 type PipelineMode = "current" | "proposed";
 
-type Level = {
+type TraceLevel = {
   level: number;
-  short: string;
-  name: string;
-  description: string;
-  avg: number;
-  openai: number;
-  anthropic: number;
   text: string;
+  analysis?: AnalyzeResponse;
+  semanticSimilarity?: number;
+  source: "backend" | "guided";
 };
 
-const LEVELS: Level[] = [
-  {
-    level: 0,
-    short: "RAW",
-    name: "Original speech",
-    description: "No intervention. Disfluencies, repetition, syntax and discourse structure remain intact.",
-    avg: 73.4,
-    openai: 73.4,
-    anthropic: 73.4,
-    text: SAMPLE.text,
-  },
-  {
-    level: 1,
-    short: "CORRECT",
-    name: "Grammar correction",
-    description: "Light correction while preserving the speaker's wording and most disfluencies.",
-    avg: 76.5,
-    openai: 74.8,
-    anthropic: 78.1,
-    text: "Well... there's a girl... um... she's reaching up to the, uh, cookie jar, and the boy is um standing on a stool, and it's tipping over. The mother is um washing dishes, and the water is running over onto the floor.",
-  },
-  {
-    level: 2,
-    short: "LIGHT",
-    name: "Light paraphrase",
-    description: "Fillers and obvious repetition are removed; phrasing is smoothed while content stays stable.",
-    avg: 62.3,
-    openai: 58.7,
-    anthropic: 65.9,
-    text: "There's a girl reaching up to the cookie jar while a boy stands on a stool that is tipping over. The mother is washing dishes as the water runs over onto the floor.",
-  },
-  {
-    level: 3,
-    short: "MODERATE",
-    name: "Moderate rewrite",
-    description: "Ideas are reorganized, repetition disappears and vocabulary becomes more polished.",
-    avg: 50.7,
-    openai: 53.8,
-    anthropic: 47.6,
-    text: "A girl reaches for a cookie jar while a boy balances on a tipping stool. Nearby, their mother washes dishes as water spills from the sink onto the floor.",
-  },
-  {
-    level: 4,
-    short: "FULL",
-    name: "Full reformulation",
-    description: "Professional-grade reformulation: fluent, concise and structurally unlike the original speech.",
-    avg: 51.7,
-    openai: 49.6,
-    anthropic: 53.8,
-    text: SAMPLE_REWRITE.text,
-  },
-];
-
-const SURVIVAL = [
-  { name: "Global coherence", values: [1, 0.58, 0.32, 0.15, 0.08] },
-  { name: "Pronoun / noun", values: [1, 1.03, 0.72, 0.41, 0.22] },
-  { name: "CIU ratio", values: [1, 1.01, 0.85, 0.52, 0.35] },
-  { name: "Sentence length", values: [1, 0.62, 0.38, 0.21, 0.12] },
-  { name: "Filler rate", values: [1, 1.18, 0.45, 0.08, 0.02] },
-  { name: "Local coherence", values: [1, 0.82, 0.55, 0.3, 0.18] },
-  { name: "MTLD", values: [1, 1, 0.78, 0.55, 0.4] },
-  { name: "Parse depth", values: [1, 0.44, 0.3, 0.18, 0.1] },
-];
+type Proxy = {
+  words: number;
+  uniqueRatio: number;
+  fillerRate: number;
+  repetitionRate: number;
+  fragmentRate: number;
+  pronounShare: number;
+  contentShare: number;
+  meanSentenceLength: number;
+};
 
 function SectionIndex({ index, children, dark = false }: { index: string; children: ReactNode; dark?: boolean }) {
-  return (
-    <div className={dark ? "section-index dark" : "section-index"}>
-      <span>{index}</span>
-      <span>{children}</span>
-    </div>
-  );
+  return <div className={dark ? "section-index dark" : "section-index"}><span>{index}</span><span>{children}</span></div>;
 }
 
-function AccuracyPlot({ activeLevel = 3 }: { activeLevel?: number }) {
-  const w = 520;
-  const h = 250;
-  const left = 46;
-  const right = 20;
-  const top = 24;
-  const bottom = 40;
-  const min = 45;
-  const max = 82;
-  const x = (i: number) => left + (i * (w - left - right)) / 4;
-  const y = (v: number) => top + ((max - v) * (h - top - bottom)) / (max - min);
-  const path = (key: "openai" | "anthropic") => LEVELS.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d[key])}`).join(" ");
-
-  return (
-    <div className="accuracy-plot" aria-label="Diagnostic accuracy by rewrite level">
-      <div className="plot-head">
-        <span>DIAGNOSTIC ACCURACY</span>
-        <span className="plot-legend"><i className="legend-blue" /> OpenAI <i className="legend-orange" /> Anthropic</span>
-      </div>
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Both model backends approach chance accuracy under stronger rewriting">
-        {[50, 60, 70, 80].map((tick) => (
-          <g key={tick}>
-            <line x1={left} x2={w - right} y1={y(tick)} y2={y(tick)} className={tick === 50 ? "chance-line" : "grid-line"} />
-            <text x={left - 10} y={y(tick) + 4} textAnchor="end" className="axis-text">{tick}</text>
-          </g>
-        ))}
-        <path d={path("openai")} className="series series-blue" />
-        <path d={path("anthropic")} className="series series-orange" />
-        {LEVELS.map((d, i) => (
-          <g key={d.level}>
-            {i === activeLevel && <line x1={x(i)} x2={x(i)} y1={top} y2={h - bottom} className="active-guide" />}
-            <circle cx={x(i)} cy={y(d.openai)} r={i === activeLevel ? 5.5 : 4} className="point point-blue" />
-            <circle cx={x(i)} cy={y(d.anthropic)} r={i === activeLevel ? 5.5 : 4} className="point point-orange" />
-            <text x={x(i)} y={h - 15} textAnchor="middle" className="axis-text strong">L{i}</text>
-          </g>
-        ))}
-        <text x={w - right} y={y(50) - 7} textAnchor="end" className="chance-text">CHANCE 50%</text>
-      </svg>
-    </div>
-  );
+function normalizeText(text: string) {
+  return text.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function MarkedTranscript({ level }: { level: number }) {
-  if (level >= 2) return <>{LEVELS[level].text}</>;
-  return (
-    <>
-      <mark className="mark-filler">well...</mark> there&apos;s a girl... <mark className="mark-filler">um...</mark> she&apos;s reaching up to the <mark className="mark-filler">uh</mark> cookie jar and the <mark className="mark-repeat">the the</mark> boy is <mark className="mark-filler">um</mark> standing on a stool and <mark className="mark-repeat">it&apos;s it&apos;s</mark> tipping over and <mark className="mark-filler">um...</mark> the mother is <mark className="mark-filler">um</mark> washing dishes and the <mark className="mark-repeat">the the</mark> water is <mark className="mark-repeat">is</mark> running over onto the floor
-    </>
-  );
+function isGuidedSample(text: string) {
+  return normalizeText(text) === normalizeText(SAMPLE.text);
 }
 
-function survivalClass(v: number) {
-  if (v >= 0.8) return "survival-high";
-  if (v >= 0.5) return "survival-mid";
-  if (v >= 0.2) return "survival-low";
-  return "survival-critical";
-}
-
-function extractFingerprint(text: string) {
-  const words = text.match(/[A-Za-z']+/g) ?? [];
-  const lower = words.map((w) => w.toLowerCase());
-  const fillers = lower.filter((w) => ["um", "uh", "er", "ah", "hmm", "well"].includes(w)).length;
-  const unique = new Set(lower).size;
-  const repeats = lower.filter((w, i) => i > 0 && w === lower[i - 1]).length;
-  const sentences = Math.max(1, text.split(/[.!?]+/).filter((s) => s.trim()).length);
-  const pronouns = lower.filter((w) => ["i", "we", "you", "he", "she", "they", "it", "him", "her", "them"].includes(w)).length;
+function proxyFeatures(text: string): Proxy {
+  const tokens = text.match(/[A-Za-z']+|\.\.\.|—|-/g) ?? [];
+  const words = tokens.filter((token) => /[A-Za-z]/.test(token));
+  const lower = words.map((word) => word.toLowerCase());
+  const n = Math.max(1, lower.length);
+  const fillers = lower.filter((word) => ["um", "uh", "er", "ah", "hmm", "well", "like"].includes(word)).length;
+  const fragments = (text.match(/\b[A-Za-z]+-|\.\.\./g) ?? []).length;
+  let repeats = 0;
+  for (let i = 1; i < lower.length; i += 1) if (lower[i] === lower[i - 1]) repeats += 1;
+  const pronouns = lower.filter((word) => ["i", "me", "my", "we", "us", "our", "you", "he", "him", "his", "she", "her", "they", "them", "their", "it"].includes(word)).length;
+  const stop = new Set(["the", "a", "an", "is", "are", "was", "were", "be", "been", "and", "or", "but", "to", "of", "in", "on", "at", "for", "from", "with", "this", "that", "it", "as"]);
+  const content = lower.filter((word) => word.length > 2 && !stop.has(word)).length;
+  const sentenceCount = Math.max(1, text.split(/[.!?]+/).filter((s) => s.trim()).length);
   return {
-    words: words.length,
-    lexical: words.length ? unique / words.length : 0,
-    filler: words.length ? fillers / words.length : 0,
-    repetition: words.length ? repeats / words.length : 0,
-    utterance: words.length / sentences,
-    pronouns,
+    words: lower.length,
+    uniqueRatio: new Set(lower).size / n,
+    fillerRate: fillers / n,
+    repetitionRate: repeats / n,
+    fragmentRate: fragments / n,
+    pronounShare: pronouns / n,
+    contentShare: content / n,
+    meanSentenceLength: lower.length / sentenceCount,
   };
 }
 
-function localRewrite(text: string) {
-  let out = text.replace(/\b(um+|uh+|er+|ah+|hmm+|well)\b[,.… ]*/gi, "");
-  out = out.replace(/\b(\w+)\s+\1\b/gi, "$1").replace(/\s{2,}/g, " ").trim();
-  if (!out) return text;
-  out = out.charAt(0).toUpperCase() + out.slice(1);
-  if (!/[.!?]$/.test(out)) out += ".";
-  return out;
+function localPreviewRewrite(text: string, level: number) {
+  if (level === 0) return text;
+  let out = text;
+  if (level >= 1) {
+    out = out.replace(/\s+([,.!?])/g, "$1").replace(/(^|[.!?]\s+)([a-z])/g, (_, prefix: string, char: string) => `${prefix}${char.toUpperCase()}`);
+  }
+  if (level >= 2) {
+    out = out.replace(/\b(um+|uh+|er+|ah+|hmm+|well)\b[,.… ]*/gi, "");
+  }
+  if (level >= 3) {
+    out = out.replace(/\b(\w+)\s+\1\b/gi, "$1").replace(/\.\.\./g, "").replace(/\s{2,}/g, " ").trim();
+  }
+  if (level >= 4) {
+    out = out.replace(/\bthere(?:'s| is)\b/gi, "There is").replace(/\bthe boy is\b/gi, "a boy is").replace(/\bthe girl\b/gi, "a girl");
+  }
+  if (out && !/[.!?]$/.test(out)) out += ".";
+  return out || text;
+}
+
+function proxyChartData(proxy: Proxy) {
+  return [
+    { label: "Lexical", value: Math.min(1, proxy.uniqueRatio), display: proxy.uniqueRatio.toFixed(3) },
+    { label: "Fillers", value: Math.min(1, proxy.fillerRate * 18), display: `${(proxy.fillerRate * 100).toFixed(2)}%` },
+    { label: "Repeat", value: Math.min(1, proxy.repetitionRate * 18), display: `${(proxy.repetitionRate * 100).toFixed(2)}%` },
+    { label: "Fragments", value: Math.min(1, proxy.fragmentRate * 18), display: `${(proxy.fragmentRate * 100).toFixed(2)}%` },
+    { label: "Pronouns", value: Math.min(1, proxy.pronounShare * 5), display: `${(proxy.pronounShare * 100).toFixed(1)}%` },
+    { label: "Content", value: Math.min(1, proxy.contentShare), display: `${(proxy.contentShare * 100).toFixed(1)}%` },
+    { label: "Sent. len.", value: Math.min(1, proxy.meanSentenceLength / 30), display: proxy.meanSentenceLength.toFixed(1) },
+  ];
+}
+
+function MarkedText({ text }: { text: string }) {
+  const parts = text.split(/(\s+)/);
+  const seen = new Map<string, number>();
+  return <>{parts.map((part, index) => {
+    const clean = part.toLowerCase().replace(/[^a-z']/g, "");
+    const count = clean ? (seen.get(clean) ?? 0) : 0;
+    if (clean) seen.set(clean, count + 1);
+    if (/^(um|uh|er|ah|hmm|well|like)$/.test(clean)) return <mark className="mark-filler" key={index}>{part}</mark>;
+    if (part.includes("...") || /[A-Za-z]-$/.test(part)) return <mark className="mark-fragment" key={index}>{part}</mark>;
+    if (clean.length > 2 && count > 0) return <mark className="mark-repeat" key={index}>{part}</mark>;
+    return <span key={index}>{part}</span>;
+  })}</>;
+}
+
+function FeatureTable({ features, compare }: { features: Record<string, number | null>; compare?: Record<string, number | null> }) {
+  const rows = Object.keys(FEATURE_LABELS);
+  return <div className="feature-table">
+    <div className="feature-table-head"><span>FEATURE</span><span>ORIGINAL</span>{compare && <span>REWRITTEN</span>}{compare && <span>Δ</span>}</div>
+    {rows.map((name) => {
+      const before = features[name];
+      const after = compare?.[name];
+      const b = typeof before === "number" ? before : null;
+      const a = typeof after === "number" ? after : null;
+      const delta = b !== null && a !== null ? ((a - b) / Math.max(Math.abs(b), 1e-6)) * 100 : null;
+      return <div className="feature-table-row" key={name}><span>{FEATURE_LABELS[name]}</span><code>{b === null ? "—" : b.toFixed(3)}</code>{compare && <code>{a === null ? "—" : a.toFixed(3)}</code>}{compare && <code className={delta !== null && Math.abs(delta) > 5 ? "delta-hot" : ""}>{delta === null ? "—" : `${delta > 0 ? "+" : ""}${delta.toFixed(1)}%`}</code>}</div>;
+    })}
+  </div>;
+}
+
+function StepRail({ step, onStep }: { step: number; onStep: (step: number) => void }) {
+  const labels = ["Input", "Analyze", "Erasure", "Solution"];
+  return <div className="demo-step-rail">
+    {labels.map((label, index) => <button key={label} className={index === step ? "demo-step active" : index < step ? "demo-step complete" : "demo-step"} onClick={() => index <= step && onStep(index)} disabled={index > step}>
+      <span>{String(index + 1).padStart(2, "0")}</span><strong>{label}</strong><i />
+    </button>)}
+  </div>;
 }
 
 export default function Demo({ onOpenResearch }: Props) {
-  const [mode, setMode] = useState<DemoMode>("guided");
-  const [level, setLevel] = useState(3);
+  const [mode, setMode] = useState<DemoMode>("full");
+  const [step, setStep] = useState(0);
+  const [fullText, setFullText] = useState(SAMPLE.text);
+  const [backend, setBackend] = useState<Backend>("openai");
+  const [analysis, setAnalysis] = useState<AnalyzeResponse | null>(null);
+  const [analysisSource, setAnalysisSource] = useState<"backend" | "guided" | null>(null);
+  const [traces, setTraces] = useState<Record<number, TraceLevel>>({});
+  const [selectedTrace, setSelectedTrace] = useState(4);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
+  const [error, setError] = useState("");
   const [pipeline, setPipeline] = useState<PipelineMode>("current");
-  const [liveText, setLiveText] = useState("");
-  const [liveCompared, setLiveCompared] = useState(false);
+
+  const [liveText, setLiveText] = useState(SAMPLE.text);
+  const [liveLevel, setLiveLevel] = useState(3);
+  const [liveBackend, setLiveBackend] = useState<Backend>("openai");
+  const [liveVerifiedOriginal, setLiveVerifiedOriginal] = useState<AnalyzeResponse | null>(null);
+  const [liveVerifiedCompare, setLiveVerifiedCompare] = useState<Awaited<ReturnType<typeof compareText>> | null>(null);
+  const [liveStatus, setLiveStatus] = useState("");
   const [recording, setRecording] = useState(false);
+  const [history, setHistory] = useState<{ n: number; lexical: number; filler: number; repetition: number }[]>([]);
   const recRef = useRef<any>(null);
 
-  const active = LEVELS[level];
-  const liveRewrite = useMemo(() => localRewrite(liveText), [liveText]);
-  const liveBefore = useMemo(() => extractFingerprint(liveText), [liveText]);
-  const liveAfter = useMemo(() => extractFingerprint(liveRewrite), [liveRewrite]);
+  const fullWords = useMemo(() => proxyFeatures(fullText).words, [fullText]);
+  const liveProxy = useMemo(() => proxyFeatures(liveText), [liveText]);
+  const liveRewrite = useMemo(() => localPreviewRewrite(liveText, liveLevel), [liveText, liveLevel]);
+  const liveRewriteProxy = useMemo(() => proxyFeatures(liveRewrite), [liveRewrite]);
+
+  useEffect(() => {
+    if (!liveText.trim()) {
+      setHistory([]);
+      return;
+    }
+    const point = {
+      n: Date.now(),
+      lexical: Math.min(1, liveProxy.uniqueRatio),
+      filler: Math.min(1, liveProxy.fillerRate * 18),
+      repetition: Math.min(1, liveProxy.repetitionRate * 18),
+    };
+    setHistory((current) => [...current.slice(-23), point]);
+  }, [liveText, liveProxy.uniqueRatio, liveProxy.fillerRate, liveProxy.repetitionRate]);
+
+  const resetFull = () => {
+    setStep(0); setAnalysis(null); setAnalysisSource(null); setTraces({}); setError(""); setProgress("");
+  };
+
+  const runAnalysis = async () => {
+    setBusy(true); setError(""); setProgress("Extracting 20 biomarkers from the raw transcript…");
+    try {
+      const result = await analyzeText(fullText);
+      setAnalysis(result); setAnalysisSource("backend"); setStep(1);
+    } catch (err) {
+      if (isGuidedSample(fullText)) {
+        setAnalysis({ features: SAMPLE.features, prediction: SAMPLE.prediction, category_scores: {} });
+        setAnalysisSource("guided"); setStep(1);
+        setError("FastAPI was not reachable, so ParaTrace loaded the repository's guided sample profile. Start the backend to analyze arbitrary transcripts with the research pipeline.");
+      } else {
+        setError("The research backend is not reachable. Start FastAPI, then run Analyze again. Your text has not been changed.");
+      }
+    } finally { setBusy(false); setProgress(""); }
+  };
+
+  const runRewrites = async () => {
+    setBusy(true); setError(""); setTraces({});
+    const next: Record<number, TraceLevel> = {};
+    try {
+      for (const item of REWRITE_LEVELS) {
+        setProgress(`Running L${item.level} / ${item.name}…`);
+        const result = await compareText(fullText, item.level, backend);
+        next[item.level] = {
+          level: item.level,
+          text: result.rewritten_text,
+          analysis: result.rewritten_analysis,
+          semanticSimilarity: result.semantic_similarity,
+          source: "backend",
+        };
+        setTraces({ ...next });
+      }
+      setSelectedTrace(4); setStep(2);
+    } catch (err) {
+      if (isGuidedSample(fullText)) {
+        const guided: Record<number, TraceLevel> = {};
+        REWRITE_LEVELS.forEach((item) => {
+          guided[item.level] = {
+            level: item.level,
+            text: GUIDED_TEXT[item.level],
+            analysis: item.level === 4 ? { features: SAMPLE_REWRITE.features, prediction: SAMPLE_REWRITE.prediction, category_scores: {} } : undefined,
+            source: "guided",
+          };
+        });
+        setTraces(guided); setSelectedTrace(4); setStep(2);
+        setError("FastAPI/LLM calls were unavailable, so the four-level guided replay is shown. Study-level accuracy values remain the project results; transcript-specific L1–L3 feature profiles are not fabricated.");
+      } else {
+        setError("The full rewrite trace needs the FastAPI backend and configured LLM key. Start the backend or load the guided sample for an offline replay.");
+      }
+    } finally { setBusy(false); setProgress(""); }
+  };
+
+  const verifyLive = async () => {
+    setLiveStatus("Running the research pipeline…");
+    setLiveVerifiedOriginal(null); setLiveVerifiedCompare(null);
+    try {
+      const [originalResult, compareResult] = await Promise.all([
+        analyzeText(liveText),
+        compareText(liveText, liveLevel, liveBackend),
+      ]);
+      setLiveVerifiedOriginal(originalResult);
+      setLiveVerifiedCompare(compareResult);
+      setLiveStatus("Verified backend result loaded. Diagnostic labels are intentionally not displayed in this public demo.");
+    } catch {
+      setLiveStatus("Backend unavailable. The charts above are still updating in real time, but they are browser-side surface-feature previews—not the trained research pipeline.");
+    }
+  };
 
   const toggleRecording = useCallback(() => {
     if (recording) {
-      recRef.current?.stop();
-      setRecording(false);
-      return;
+      recRef.current?.stop(); setRecording(false); return;
     }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      alert("Browser speech recognition is not available here. You can type instead.");
-      return;
-    }
+    if (!SR) { alert("Browser speech recognition is unavailable here. You can type or paste a transcript instead."); return; }
     const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
+    recognition.continuous = true; recognition.interimResults = true; recognition.lang = "en-US";
     let finalText = liveText;
     recognition.onresult = (event: any) => {
       let interim = "";
@@ -214,242 +268,82 @@ export default function Demo({ onOpenResearch }: Props) {
     };
     recognition.onerror = () => setRecording(false);
     recognition.onend = () => setRecording(false);
-    recRef.current = recognition;
-    recognition.start();
-    setRecording(true);
+    recRef.current = recognition; recognition.start(); setRecording(true);
   }, [liveText, recording]);
 
-  const scrollToExperiment = () => document.getElementById("experiment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const selected = traces[selectedTrace];
+  const selectedStudy = STUDY_ACCURACY[selectedTrace];
 
-  return (
-    <div className="demo-page">
-      <section className="hero-section">
-        <div className="hero-copy">
-          <SectionIndex index="01 / FINDING">CLINICAL LANGUAGE SAFETY</SectionIndex>
-          <h1>AI cleans the transcript.<br /><em>It can clean away the signal.</em></h1>
-          <p className="hero-deck">
-            ParaTrace tests whether AI clinical rewriting preserves the cognitive-linguistic biomarkers hidden in patient speech. Across 552 clinically labelled transcripts and 4,416 rewrites, meaning remained high while diagnostic performance fell toward chance.
-          </p>
-          <div className="hero-actions">
-            <button className="primary-action" onClick={scrollToExperiment}>Run the experiment <span>→</span></button>
-            <button className="text-action" onClick={onOpenResearch}>Read the evidence <span>↗</span></button>
-          </div>
-          <div className="hero-metrics">
-            <div><strong>552</strong><span>transcripts</span></div>
-            <div><strong>4,416</strong><span>AI rewrites</span></div>
-            <div><strong>20</strong><span>biomarkers</span></div>
-            <div><strong>2</strong><span>LLM backends</span></div>
-          </div>
-        </div>
-
-        <div className="hero-visual">
-          <div className="visual-kicker"><span>EXPERIMENT / 001</span><span>CONTROL → DEMENTIA</span></div>
-          <AccuracyPlot activeLevel={3} />
-          <div className="hero-finding-row">
-            <div>
-              <span>SEMANTIC CONTENT</span>
-              <strong>≥83%</strong>
-              <small>preserved through heavy rewriting</small>
-            </div>
-            <div className="danger-metric">
-              <span>DIAGNOSTIC ACCURACY</span>
-              <strong>≈50%</strong>
-              <small>approaches coin-flip performance</small>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mode-switch" aria-label="Demo mode">
-        <button className={mode === "guided" ? "mode-button active" : "mode-button"} onClick={() => setMode("guided")}><span>01</span> Guided experiment</button>
-        <button className={mode === "live" ? "mode-button active" : "mode-button"} onClick={() => setMode("live")}><span>02</span> Try your speech</button>
+  return <div className="demo-page">
+    <section className="hero-section demo-hero-compact">
+      <div className="hero-copy">
+        <SectionIndex index="01 / DEMONSTRATION">CLINICAL LANGUAGE PRESERVATION</SectionIndex>
+        <h1>Watch a clinical trace<br /><em>disappear under rewriting.</em></h1>
+        <p className="hero-deck">Enter a transcript, extract its linguistic profile, run the four intervention levels, then inspect what survived. For a booth demo, the same interface also provides an instant, non-diagnostic live lab while a visitor speaks or types.</p>
+        <div className="hero-metrics"><div><strong>552</strong><span>transcripts</span></div><div><strong>4,416</strong><span>rewrites</span></div><div><strong>20</strong><span>biomarkers</span></div><div><strong>19/20</strong><span>changed by L2</span></div></div>
       </div>
+      <div className="hero-visual"><div className="visual-kicker"><span>REPOSITORY-REPORTED SUMMARY</span><span>MEANING ≥83%</span></div><StudyAccuracyChart activeLevel={3} /><div className="hero-finding-row"><div><span>L0 CV BASELINE</span><strong>73.4%</strong><small>5-fold cross-validation</small></div><div className="danger-metric"><span>L3 DEGRADATION</span><strong>50.7%</strong><small>average of two backend evaluations</small></div></div><p className="hero-protocol-footnote">The repository currently uses different evaluation procedures for the L0 CV baseline and the L1–L4 degradation artifact. The Research tab documents this explicitly.</p></div>
+    </section>
 
-      {mode === "guided" ? (
-        <>
-          <section className="experiment-section" id="experiment">
-            <SectionIndex index="02 / INTERVENTION">WATCH THE LINGUISTIC FINGERPRINT CHANGE</SectionIndex>
-            <div className="experiment-heading-row">
-              <div>
-                <h2>Same scene. Same meaning.<br />Different clinical trace.</h2>
-              </div>
-              <p>Move from raw speech to full reformulation. The transcript becomes easier to read while features used by speech-based cognitive screening are progressively altered.</p>
-            </div>
-
-            <div className="level-control">
-              {LEVELS.map((item) => (
-                <button key={item.level} onClick={() => setLevel(item.level)} className={item.level === level ? "level-step active" : "level-step"}>
-                  <span className="level-dot" />
-                  <strong>L{item.level}</strong>
-                  <small>{item.short}</small>
-                </button>
-              ))}
-              <div className="level-track" />
-            </div>
-
-            <div className="specimen-grid">
-              <article className="transcript-specimen">
-                <div className="panel-header">
-                  <div><span>TRANSCRIPT / L{level}</span><strong>{active.name}</strong></div>
-                  <span className={level >= 2 ? "status eroding" : "status preserved"}>{level >= 2 ? "SIGNAL ALTERED" : "SIGNAL VISIBLE"}</span>
-                </div>
-                <div className="transcript-body"><MarkedTranscript level={level} /></div>
-                <div className="annotation-key">
-                  <span><i className="key-filler" /> disfluency</span>
-                  <span><i className="key-repeat" /> repetition</span>
-                  <span className="annotation-note">Guided example based on the study intervention levels.</span>
-                </div>
-              </article>
-
-              <aside className="signal-readout">
-                <div className="panel-header"><div><span>SIGNAL READOUT</span><strong>Study-level effect</strong></div><span>L{level}</span></div>
-                <div className="readout-primary">
-                  <span>AVERAGE ACCURACY</span>
-                  <strong>{active.avg.toFixed(1)}%</strong>
-                  <div className="readout-bar"><i style={{ width: `${active.avg}%` }} /></div>
-                  <small>{level >= 3 ? "Near chance-level classification" : level === 2 ? "Diagnostic separation is failing" : "Signal remains substantially usable"}</small>
-                </div>
-                <div className="readout-grid">
-                  <div><span>OpenAI</span><strong>{active.openai.toFixed(1)}%</strong></div>
-                  <div><span>Anthropic</span><strong>{active.anthropic.toFixed(1)}%</strong></div>
-                  <div><span>Meaning</span><strong>{level === 0 ? "100%" : "≥83%"}</strong></div>
-                  <div><span>Changed by L2</span><strong>19/20</strong></div>
-                </div>
-                <p>{active.description}</p>
-              </aside>
-            </div>
-
-            <blockquote className="core-statement">
-              <span>03 / INTERPRETATION</span>
-              <p>What was said survives.<br /><em>How it was said does not.</em></p>
-            </blockquote>
-          </section>
-
-          <section className="survival-section">
-            <div className="survival-intro">
-              <SectionIndex index="04 / EROSION">BIOMARKER SURVIVAL MAP</SectionIndex>
-              <h2>The linguistic fingerprint disappears before the meaning does.</h2>
-              <p>Biomarker Retention Ratio compares the diagnostic separation retained after rewriting with the separation present in the original speech. Values near zero indicate that group-distinguishing signal has largely vanished.</p>
-            </div>
-            <div className="survival-map">
-              <div className="survival-head"><span>FEATURE</span>{LEVELS.map((l) => <span key={l.level}>L{l.level}</span>)}</div>
-              {SURVIVAL.map((row) => (
-                <div className="survival-row" key={row.name}>
-                  <span>{row.name}</span>
-                  {row.values.map((value, i) => (
-                    <button key={i} className={`survival-cell ${survivalClass(value)} ${i === level ? "selected" : ""}`} onClick={() => setLevel(i)} title={`${row.name}, L${i}: ${value.toFixed(2)}`}>
-                      <span>{value.toFixed(2)}</span>
-                    </button>
-                  ))}
-                </div>
-              ))}
-              <div className="survival-scale"><span>retained</span><i /><i /><i /><i /><span>eroded</span></div>
-            </div>
-          </section>
-
-          <section className="solution-section">
-            <div className="solution-inner">
-              <SectionIndex index="05 / SAFEGUARD" dark>PROPOSED ARCHITECTURE</SectionIndex>
-              <div className="solution-heading">
-                <h2>Preserve the signal <em>before</em> the rewrite.</h2>
-                <p>ParaTrace proposes pre-extraction: compute biomarker features from the raw ASR transcript first, then allow the clinical scribe to generate a readable note.</p>
-              </div>
-
-              <div className="pipeline-toggle">
-                <button className={pipeline === "current" ? "active bad" : ""} onClick={() => setPipeline("current")}>Current pipeline</button>
-                <button className={pipeline === "proposed" ? "active good" : ""} onClick={() => setPipeline("proposed")}>ParaTrace safeguard</button>
-              </div>
-
-              {pipeline === "current" ? (
-                <div className="pipeline-diagram current-pipeline">
-                  <div className="pipeline-node"><span>01</span><strong>Patient speech</strong><small>raw linguistic signal</small></div>
-                  <div className="pipeline-arrow">→</div>
-                  <div className="pipeline-node danger"><span>02</span><strong>AI scribe</strong><small>rewrites / smooths</small></div>
-                  <div className="pipeline-arrow danger-arrow">→</div>
-                  <div className="pipeline-node danger"><span>03</span><strong>Biomarker extraction</strong><small>signal already changed</small></div>
-                  <div className="pipeline-result lost"><span>RESULT</span><strong>≈50%</strong><small>accuracy at heavy rewriting</small></div>
-                </div>
-              ) : (
-                <div className="pipeline-diagram proposed-pipeline">
-                  <div className="pipeline-node"><span>01</span><strong>Patient speech</strong><small>raw linguistic signal</small></div>
-                  <div className="pipeline-branch">
-                    <div className="branch-line" />
-                    <div className="pipeline-node safe"><span>02A</span><strong>Biomarker extraction</strong><small>pre-AI profile retained</small></div>
-                    <div className="pipeline-node"><span>02B</span><strong>AI scribe</strong><small>polished clinical note</small></div>
-                  </div>
-                  <div className="pipeline-arrow">→</div>
-                  <div className="pipeline-result kept"><span>CLINICIAN RECEIVES</span><strong>NOTE + PROFILE</strong><small>readability without discarding the original signal</small></div>
-                </div>
-              )}
-
-              <div className="solution-note">
-                <span>DESIGN PRINCIPLE</span>
-                <p>Do not ask the polished note to reconstruct information the polishing step may have removed.</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="evidence-strip">
-            <SectionIndex index="06 / EVIDENCE">REPRODUCIBLE STUDY</SectionIndex>
-            <div className="evidence-grid">
-              <div><span>DATA</span><strong>552</strong><p>DementiaBank Pitt Cookie Theft transcripts; 243 control and 309 dementia.</p></div>
-              <div><span>INTERVENTIONS</span><strong>4,416</strong><p>Four rewrite levels across two independent LLM backends.</p></div>
-              <div><span>FEATURES</span><strong>20</strong><p>Cognitive-linguistic biomarkers spanning eight categories.</p></div>
-              <div><span>TESTING</span><strong>5× CV</strong><p>Stratified cross-validation plus paired statistical testing.</p></div>
-            </div>
-            <button className="primary-action inverse" onClick={onOpenResearch}>Open full methodology <span>→</span></button>
-          </section>
-        </>
-      ) : (
-        <section className="live-section" id="experiment">
-          <SectionIndex index="02 / LIVE">YOUR LINGUISTIC FINGERPRINT</SectionIndex>
-          <div className="live-title-row">
-            <div><h2>Describe the Cookie Theft scene in your own words.</h2><p>Type or use browser speech recognition. This public demo shows how surface-level linguistic features change after cleanup; it is not a clinical assessment.</p></div>
-            <div className="ethics-chip">NON-DIAGNOSTIC DEMO</div>
-          </div>
-
-          <div className="live-input-grid">
-            <div className="scene-brief">
-              <span>COOKIE THEFT / BDAE</span>
-              <p>A kitchen scene: a woman washes dishes while water overflows from the sink. Behind her, two children reach for a cookie jar. A boy stands on a stool that is beginning to tip.</p>
-              <small>Describe what you notice naturally, without trying to sound polished.</small>
-            </div>
-            <div className="live-editor">
-              <textarea value={liveText} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => { setLiveText(e.target.value); setLiveCompared(false); }} placeholder="Start speaking or typing here…" />
-              <div className="editor-footer">
-                <span>{liveBefore.words} words</span>
-                <div>
-                  <button className={recording ? "record-button recording" : "record-button"} onClick={toggleRecording}>{recording ? "■ Stop" : "● Speak"}</button>
-                  <button className="primary-action compact" disabled={liveBefore.words < 10} onClick={() => setLiveCompared(true)}>Compare rewrite →</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {liveCompared && (
-            <div className="live-results">
-              <div className="live-transcripts">
-                <article><div className="panel-header"><div><span>BEFORE</span><strong>Your speech</strong></div></div><p>{liveText}</p></article>
-                <article><div className="panel-header"><div><span>AFTER</span><strong>Illustrative cleanup</strong></div></div><p>{liveRewrite}</p></article>
-              </div>
-              <div className="fingerprint-table">
-                <div className="fingerprint-head"><span>FEATURE</span><span>BEFORE</span><span>AFTER</span><span>CHANGE</span></div>
-                {[
-                  ["Lexical diversity", liveBefore.lexical, liveAfter.lexical, "ratio"],
-                  ["Filler rate", liveBefore.filler, liveAfter.filler, "ratio"],
-                  ["Immediate repetition", liveBefore.repetition, liveAfter.repetition, "ratio"],
-                  ["Mean utterance length", liveBefore.utterance, liveAfter.utterance, "number"],
-                  ["Pronoun count", liveBefore.pronouns, liveAfter.pronouns, "number"],
-                ].map(([name, before, after, kind]) => {
-                  const b = Number(before); const a = Number(after); const delta = a - b;
-                  return <div className="fingerprint-row" key={String(name)}><span>{String(name)}</span><span>{kind === "ratio" ? b.toFixed(3) : b.toFixed(1)}</span><span>{kind === "ratio" ? a.toFixed(3) : a.toFixed(1)}</span><span className={Math.abs(delta) > 0.001 ? "changed" : "stable"}>{delta > 0 ? "+" : ""}{kind === "ratio" ? delta.toFixed(3) : delta.toFixed(1)}</span></div>;
-                })}
-              </div>
-              <p className="live-disclaimer"><strong>Important:</strong> these browser-side calculations are an illustration of feature sensitivity, not the trained research classifier and not a diagnosis. The competition result comes from the full 552-transcript experimental pipeline documented in Research.</p>
-            </div>
-          )}
-        </section>
-      )}
+    <div className="mode-switch lab-mode-switch">
+      <button className={mode === "full" ? "mode-button active" : "mode-button"} onClick={() => setMode("full")}><span>01</span> Full four-step demo</button>
+      <button className={mode === "live" ? "mode-button active" : "mode-button"} onClick={() => setMode("live")}><span>02</span> Live signal lab</button>
+      <button className="mode-button" onClick={onOpenResearch}><span>03</span> Research evidence ↗</button>
     </div>
-  );
+
+    {mode === "full" ? <section className="full-demo-section" id="experiment">
+      <div className="full-demo-head"><div><SectionIndex index="02 / FULL DEMO">INPUT → ANALYZE → ERASURE → SOLUTION</SectionIndex><h2>One transcript. Four intervention levels. One trace.</h2></div><button className="text-action" onClick={resetFull}>Reset demo ↺</button></div>
+      <StepRail step={step} onStep={setStep} />
+
+      {step === 0 && <div className="step-workspace input-workspace">
+        <div className="step-copy"><span className="workspace-kicker">STEP 01 / INPUT</span><h3>Start with the raw linguistic measurement surface.</h3><p>Paste any transcript. For a fully computed run, the FastAPI backend extracts the same 20-feature representation used by ParaTrace. The included Cookie Theft sample can also replay offline.</p><div className="input-actions"><button className="text-action" onClick={() => setFullText(SAMPLE.text)}>Load guided Cookie Theft example</button><span>{fullWords} words</span></div></div>
+        <div className="scientific-editor"><div className="editor-top"><span>RAW TRANSCRIPT</span><span>UTF-8 / FREE TEXT</span></div><textarea value={fullText} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => { setFullText(e.target.value); setError(""); }} placeholder="Paste a speech transcript here…" /><div className="editor-bottom"><span>{fullWords < 10 ? "Enter at least 10 words" : "Ready for feature extraction"}</span><button className="primary-action compact" disabled={fullWords < 10 || busy} onClick={runAnalysis}>Analyze raw speech →</button></div></div>
+      </div>}
+
+      {step === 1 && analysis && <div className="step-workspace analysis-workspace">
+        <div className="workspace-toolbar"><div><span className="workspace-kicker">STEP 02 / ANALYZE</span><h3>The raw profile before any generative editing.</h3></div><div className={analysisSource === "backend" ? "status-chip online" : "status-chip replay"}>{analysisSource === "backend" ? "RESEARCH BACKEND" : "GUIDED REPLAY"}</div></div>
+        <div className="analysis-grid"><article className="transcript-instrument"><div className="panel-header"><div><span>RAW SPEECH</span><strong>Signal-bearing text</strong></div><span>L0</span></div><div className="instrument-transcript"><MarkedText text={fullText} /></div><div className="annotation-key"><span><i className="key-filler" /> filler / hesitation</span><span><i className="key-repeat" /> repetition</span><span><i className="key-fragment" /> fragment / pause marker</span></div></article><CategoryRadar original={analysis.features} /></div>
+        <details className="feature-details"><summary>Inspect all 20 extracted features</summary><FeatureTable features={analysis.features} /></details>
+        <div className="workspace-next"><div><span>LLM BACKEND</span><div className="backend-switch"><button className={backend === "openai" ? "active" : ""} onClick={() => setBackend("openai")}>OpenAI / GPT-4o-mini</button><button className={backend === "anthropic" ? "active" : ""} onClick={() => setBackend("anthropic")}>Anthropic / Claude Sonnet</button></div></div><button className="primary-action" disabled={busy} onClick={runRewrites}>Run L1 → L4 trace <span>→</span></button></div>
+      </div>}
+
+      {step === 2 && Object.keys(traces).length > 0 && <div className="step-workspace rewrite-workspace">
+        <div className="workspace-toolbar"><div><span className="workspace-kicker">STEP 03 / ERASURE</span><h3>Inspect every intervention—not just the endpoint.</h3></div><button className="primary-action compact" onClick={() => setStep(3)}>See signal + solution →</button></div>
+        <div className="rewrite-trace-selector">{REWRITE_LEVELS.map((item) => <button key={item.level} className={selectedTrace === item.level ? "rewrite-trace-tab active" : "rewrite-trace-tab"} onClick={() => setSelectedTrace(item.level)}><span>L{item.level}</span><strong>{item.name}</strong><small>{STUDY_ACCURACY[item.level].average.toFixed(1)}% study avg.</small></button>)}</div>
+        {selected && <div className="rewrite-comparison"><article><div className="panel-header"><div><span>ORIGINAL / L0</span><strong>Raw speech</strong></div></div><p><MarkedText text={fullText} /></p></article><article><div className="panel-header"><div><span>REWRITE / L{selected.level}</span><strong>{REWRITE_LEVELS[selected.level - 1].name}</strong></div><span className="status eroding">{selected.source === "backend" ? "LIVE OUTPUT" : "GUIDED"}</span></div><p>{selected.text}</p></article></div>}
+        <div className="rewrite-readout"><div><span>STUDY-LEVEL AVERAGE</span><strong>{selectedStudy.average.toFixed(1)}%</strong><small>diagnostic accuracy at L{selectedTrace}</small></div><div><span>OPENAI</span><strong>{selectedStudy.openai.toFixed(1)}%</strong><small>project evaluation</small></div><div><span>ANTHROPIC</span><strong>{selectedStudy.anthropic.toFixed(1)}%</strong><small>project evaluation</small></div><div><span>SEMANTIC SIM.</span><strong>{selected?.semanticSimilarity !== undefined ? `${(selected.semanticSimilarity * 100).toFixed(1)}%` : selectedTrace >= 3 ? "≥83%" : "high"}</strong><small>{selected?.semanticSimilarity !== undefined ? "this backend run" : "study finding"}</small></div></div>
+        {selected?.analysis && analysis && <div className="analysis-grid post-analysis"><CategoryRadar original={analysis.features} rewritten={selected.analysis.features} /><FeatureDeltaChart original={analysis.features} rewritten={selected.analysis.features} /></div>}
+        {!selected?.analysis && <div className="precision-note"><strong>No transcript-specific feature chart is shown for this offline L{selectedTrace} replay.</strong><span>That avoids inventing measurements. Start the backend to compute this transcript's actual rewritten feature vector.</span></div>}
+      </div>}
+
+      {step === 3 && <div className="step-workspace compare-workspace">
+        <div className="workspace-toolbar"><div><span className="workspace-kicker">STEP 04 / SOLUTION</span><h3>The content can survive while the measurement changes.</h3></div><span className="ethics-chip">STUDY RESULT ≠ INDIVIDUAL DIAGNOSIS</span></div>
+        <div className="compare-dashboard"><StudyAccuracyChart activeLevel={selectedTrace} /><div className="compare-thesis"><span>THE “WHAT / HOW” GAP</span><strong>Meaning stays high.</strong><strong className="danger-text">Diagnostic separation falls toward chance.</strong><p>ParaTrace's central result is study-level: at L3 the average accuracy is 50.7%, and at L4 it is 51.7%, even though semantic similarity remains high.</p></div></div>
+        <div className="evidence-matrix full-demo-evidence">
+          <div className="evidence-matrix-head"><span>EXACT L2 FEATURE CHANGE / COMMITTED STATISTICAL ARTIFACT</span><span>ANTHROPIC</span><span>OPENAI</span></div>
+          {L2_FEATURE_CHANGES.map((row) => <div className="evidence-matrix-row" key={row.name}>
+            <span>{row.name}</span>
+            <strong className={row.significantAnthropic ? "evidence-hot" : "evidence-neutral"}>{row.anthropic > 0 ? "+" : ""}{row.anthropic.toFixed(2)}%</strong>
+            <strong className={row.significantOpenAI ? "evidence-hot" : "evidence-neutral"}>{row.openai > 0 ? "+" : ""}{row.openai.toFixed(2)}%</strong>
+          </div>)}
+          <div className="evidence-matrix-foot"><span>19 / 20 features are significant at L2 in each backend.</span><span>Paired Wilcoxon · p &lt; 0.05</span></div>
+        </div>
+        <div className="protocol-mini-audit"><strong>PROTOCOL NOTE</strong><p>The 73.4% L0 figure is a 5-fold CV baseline. The committed degradation routine fits a Random Forest on all L0 samples before evaluating rewritten feature sets; its own in-sample L0 reference is 98.6%. ParaTrace therefore labels the published sequence as a repository-reported summary rather than implying one uniform cross-validation protocol.</p></div>
+        <div className="solution-embed"><SectionIndex index="04.1 / SAFEGUARD" dark>PRE-EXTRACTION ARCHITECTURE</SectionIndex><div className="solution-heading"><h2>Preserve the signal <em>before</em> the rewrite.</h2><p>Separate the measurement path from the documentation path: extract biomarkers from the raw transcript, then let the scribe produce a readable note.</p></div><div className="pipeline-toggle"><button className={pipeline === "current" ? "active bad" : ""} onClick={() => setPipeline("current")}>Current pipeline</button><button className={pipeline === "proposed" ? "active good" : ""} onClick={() => setPipeline("proposed")}>ParaTrace safeguard</button></div>{pipeline === "current" ? <div className="pipeline-diagram current-pipeline"><div className="pipeline-node"><span>01</span><strong>Patient speech</strong><small>raw trace</small></div><div className="pipeline-arrow">→</div><div className="pipeline-node danger"><span>02</span><strong>AI rewrite</strong><small>signal altered</small></div><div className="pipeline-arrow danger-arrow">→</div><div className="pipeline-node danger"><span>03</span><strong>Feature extraction</strong><small>too late</small></div><div className="pipeline-result lost"><span>L3 AVG.</span><strong>50.7%</strong><small>study-level accuracy</small></div></div> : <div className="pipeline-diagram proposed-pipeline"><div className="pipeline-node"><span>01</span><strong>Patient speech</strong><small>raw trace</small></div><div className="pipeline-branch"><div className="branch-line" /><div className="pipeline-node safe"><span>02A</span><strong>Feature extraction</strong><small>preserved pre-AI</small></div><div className="pipeline-node"><span>02B</span><strong>AI scribe</strong><small>readable note</small></div></div><div className="pipeline-arrow">→</div><div className="pipeline-result kept"><span>OUTPUT</span><strong>NOTE + PROFILE</strong><small>two distinct artifacts</small></div></div>}</div>
+      </div>}
+
+      {(error || progress) && <div className={error ? "demo-message warning" : "demo-message"}><span>{error ? "NOTE" : "RUNNING"}</span><p>{error || progress}</p></div>}
+      {busy && <div className="instrument-loading"><i /><span>{progress || "Running pipeline…"}</span></div>}
+    </section> : <section className="live-lab-section" id="experiment">
+      <div className="live-lab-head"><div><SectionIndex index="02 / LIVE LAB">REAL-TIME SPEECH TEXTURE</SectionIndex><h2>Type or speak. Watch the surface features move.</h2><p>This panel is deliberately split into two layers: instant browser-side proxies update on every keystroke, while the verified button calls your actual ParaTrace backend for the 20-feature pipeline.</p></div><span className="ethics-chip">NON-DIAGNOSTIC</span></div>
+      <div className="live-console">
+        <div className="live-editor-panel"><div className="editor-top"><span>LIVE TRANSCRIPT</span><span>{recording ? "● RECORDING" : "READY"}</span></div><textarea value={liveText} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => { setLiveText(e.target.value); setLiveVerifiedOriginal(null); setLiveVerifiedCompare(null); setLiveStatus(""); }} placeholder="Speak naturally or paste a transcript…" /><div className="editor-bottom"><span>{liveProxy.words} words</span><div><button className={recording ? "record-button recording" : "record-button"} onClick={toggleRecording}>{recording ? "■ Stop" : "● Speak"}</button><button className="text-action" onClick={() => setLiveText(SAMPLE.text)}>Load sample</button></div></div><div className="live-markup"><span>LIVE MARKUP</span><p><MarkedText text={liveText || "Your annotated transcript will appear here."} /></p></div></div>
+        <div className="live-metrics-column"><div className="live-number-grid"><div><span>WORDS</span><strong>{liveProxy.words}</strong></div><div><span>UNIQUE RATIO</span><strong>{liveProxy.uniqueRatio.toFixed(2)}</strong></div><div><span>FILLERS / 100</span><strong>{(liveProxy.fillerRate * 100).toFixed(1)}</strong></div><div><span>REPEATS / 100</span><strong>{(liveProxy.repetitionRate * 100).toFixed(1)}</strong></div></div><div className="proxy-note">These four numbers are deterministic text-surface measurements. They are not the trained classifier and do not estimate cognitive status.</div></div>
+      </div>
+      <div className="live-chart-grid"><LiveProxyBars values={proxyChartData(liveProxy)} /><LiveHistoryChart history={history} /></div>
+      <div className="live-rewrite-console"><div className="live-rewrite-controls"><div><span>ILLUSTRATIVE REWRITE INTENSITY</span><div className="level-control compact-level-control">{[0,1,2,3,4].map((level) => <button key={level} onClick={() => { setLiveLevel(level); setLiveVerifiedCompare(null); }} className={level === liveLevel ? "level-step active" : "level-step"}><span className="level-dot" /><strong>L{level}</strong><small>{STUDY_ACCURACY[level].short}</small></button>)}<div className="level-track" /></div></div><div className="backend-switch"><button className={liveBackend === "openai" ? "active" : ""} onClick={() => setLiveBackend("openai")}>OpenAI</button><button className={liveBackend === "anthropic" ? "active" : ""} onClick={() => setLiveBackend("anthropic")}>Anthropic</button></div></div><div className="live-transcripts"><article><div className="panel-header"><div><span>BEFORE</span><strong>Raw transcript</strong></div></div><p><MarkedText text={liveText} /></p></article><article><div className="panel-header"><div><span>AFTER / PREVIEW</span><strong>L{liveLevel} surface cleanup</strong></div><span className="status preview">LOCAL PREVIEW</span></div><p>{liveRewrite}</p></article></div><div className="preview-delta-strip"><div><span>LEXICAL</span><strong>{liveProxy.uniqueRatio.toFixed(3)} → {liveRewriteProxy.uniqueRatio.toFixed(3)}</strong></div><div><span>FILLER RATE</span><strong>{(liveProxy.fillerRate*100).toFixed(2)}% → {(liveRewriteProxy.fillerRate*100).toFixed(2)}%</strong></div><div><span>REPETITION</span><strong>{(liveProxy.repetitionRate*100).toFixed(2)}% → {(liveRewriteProxy.repetitionRate*100).toFixed(2)}%</strong></div><button className="primary-action compact" disabled={liveProxy.words < 10 || liveLevel === 0} onClick={verifyLive}>Run verified ParaTrace →</button></div></div>
+      {liveStatus && <div className="demo-message"><span>PIPELINE</span><p>{liveStatus}</p></div>}
+      {liveVerifiedOriginal && liveVerifiedCompare && <div className="verified-live-result"><div className="verified-head"><div><span>VERIFIED BACKEND RESULT</span><strong>{liveVerifiedCompare.rewritten_text ? `L${liveLevel} / ${liveBackend}` : "ParaTrace"}</strong></div><div><span>SEMANTIC SIMILARITY</span><strong>{(liveVerifiedCompare.semantic_similarity * 100).toFixed(1)}%</strong></div></div><div className="analysis-grid"><CategoryRadar original={liveVerifiedOriginal.features} rewritten={liveVerifiedCompare.rewritten_analysis.features} /><FeatureDeltaChart original={liveVerifiedOriginal.features} rewritten={liveVerifiedCompare.rewritten_analysis.features} /></div><details className="feature-details"><summary>Inspect all 20 verified features</summary><FeatureTable features={liveVerifiedOriginal.features} compare={liveVerifiedCompare.rewritten_analysis.features} /></details><p className="live-disclaimer"><strong>No diagnosis is shown.</strong> The backend may compute a classifier output internally, but this public interface focuses on feature preservation because an arbitrary visitor transcript is not a validated clinical assessment.</p></div>}
+    </section>}
+  </div>;
 }

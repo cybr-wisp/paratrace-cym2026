@@ -1,236 +1,100 @@
 import { useState, type ReactNode } from "react";
+import {
+  COMMITTED_DEGRADATION_L0,
+  L2_FEATURE_CHANGES,
+  REWRITE_LEVELS,
+  STUDY_ACCURACY,
+  VERIFIED_SOURCES,
+} from "../data/study";
+import { StudyAccuracyChart } from "../components/ScientificCharts";
 
-type Tab = "methodology" | "results" | "features" | "references";
-
-const ACCURACY = [
-  { level: "L0", description: "Original speech", anthropic: 73.4, openai: 73.4, average: 73.4 },
-  { level: "L1", description: "Grammar correction", anthropic: 78.1, openai: 74.8, average: 76.5 },
-  { level: "L2", description: "Light paraphrase", anthropic: 65.9, openai: 58.7, average: 62.3 },
-  { level: "L3", description: "Moderate rewrite", anthropic: 47.6, openai: 53.8, average: 50.7 },
-  { level: "L4", description: "Full reformulation", anthropic: 53.8, openai: 49.6, average: 51.7 },
-];
-
-const IMPORTANCE = [
-  ["Global coherence", .142], ["Pronoun-to-noun ratio", .128], ["CIU ratio", .098],
-  ["Mean sentence length", .089], ["Brunet's W", .078], ["Filler rate", .072],
-  ["Local coherence", .068], ["MTLD", .062], ["Clause density", .055], ["Mean parse depth", .048],
-] as const;
-
-const BRR = [
-  ["Global coherence", 0.58, 0.32, 0.15, 0.08],
-  ["Pronoun / noun", 1.03, 0.72, 0.41, 0.22],
-  ["CIU ratio", 1.01, 0.85, 0.52, 0.35],
-  ["Sentence length", 0.62, 0.38, 0.21, 0.12],
-  ["Filler rate", 1.18, 0.45, 0.08, 0.02],
-  ["Local coherence", 0.82, 0.55, 0.30, 0.18],
-  ["MTLD", 1.00, 0.78, 0.55, 0.40],
-  ["Parse depth", 0.44, 0.30, 0.18, 0.10],
-] as const;
+type Tab = "methodology" | "results" | "features" | "sources";
 
 const PIPELINE = [
-  ["01", "Ingestion", "pylangacq 0.23", "Parse CHAT-format .cha files, extract participant utterances and preserve disfluency markers while removing incompatible CHAT annotations."],
-  ["02", "Feature extraction", "spaCy + sentence-transformers + lexicalrichness", "Extract 20 biomarkers across eight categories using dependency parses, embeddings, lexical richness measures and deterministic arithmetic."],
-  ["03", "LLM rewriting", "GPT-4o-mini + Claude Sonnet 3.5", "Apply four intervention levels from grammar correction through full reformulation, with disk caching for each transcript / level / backend combination."],
-  ["04", "Classification", "scikit-learn", "Evaluate Random Forest, Gradient Boosting and Logistic Regression with stratified 5-fold cross-validation, scaling and class weighting."],
-  ["05", "Statistical testing", "scipy.stats", "Use paired Wilcoxon signed-rank tests, effect sizes and Biomarker Retention Ratio to quantify feature change and diagnostic separation."],
+  ["01", "Ingestion", "pylangacq / CHAT", "Parse CHAT-format .cha files and assemble participant speech into the project transcript table."],
+  ["02", "Feature extraction", "spaCy · sentence-transformers · lexicalrichness", "Extract 20 numerical features. The extractor makes three main library calls, then computes the remaining measurements arithmetically."],
+  ["03", "LLM rewriting", "GPT-4o-mini · Claude Sonnet 4.6", "Apply four controlled prompt levels at temperature 0.3. Rewrites are cached by transcript, level and backend."],
+  ["04", "Classification", "scikit-learn", "The baseline routine evaluates Random Forest, Gradient Boosting and Logistic Regression with stratified 5-fold CV; the degradation routine separately fits a Random Forest on all L0 samples and evaluates transformed feature sets."],
+  ["05", "Statistics", "scipy.stats", "Use paired Wilcoxon signed-rank tests, paired Cohen's d and a separate group-separation Biomarker Retention Ratio analysis."],
 ] as const;
 
 const CATEGORIES = [
-  ["Lexical diversity", "TTR · MTLD · MATTR", "lexicalrichness", "Captures vocabulary variety and repeated lexical choice."],
-  ["Repetition", "Content word · bigram · unique ratio", "spaCy POS", "Measures repeated words and phrase-level reuse."],
-  ["Semantic coherence", "Local · global · variance", "sentence-transformers", "Measures topic continuity and discourse drift."],
-  ["Syntactic complexity", "Parse depth · sentence length · clauses", "spaCy dependency parse", "Captures simplification or expansion of syntactic structure."],
-  ["Idea density", "Open-class ratio", "spaCy POS", "Approximates information-bearing content per unit of speech."],
-  ["Word-finding", "Fillers · fragments · utterance length", "regex + spaCy", "Tracks disfluency and lexical-access behaviours."],
-  ["Vocabulary", "Brunet's W · Honore's R", "frequency analysis", "Measures vocabulary richness with frequency-sensitive indices."],
-  ["Content units", "CIU ratio · pronoun/noun", "spaCy POS", "Captures informative content and noun substitution patterns."],
+  ["Lexical diversity", "TTR · MTLD · MATTR", "Vocabulary variety and lexical reuse."],
+  ["Repetition", "content-word repetition · bigram repetition · unique-word ratio", "Repeated lexical or phrase-level material."],
+  ["Semantic coherence", "local coherence · global coherence · coherence variance", "Discourse continuity and topic drift from sentence embeddings."],
+  ["Syntactic complexity", "parse depth · mean sentence length · clause density", "Structural complexity estimated from the dependency parse."],
+  ["Idea density", "open-class word ratio", "Information-bearing content relative to total words."],
+  ["Word-finding", "fillers · incomplete words · utterance length", "Surface disfluency and lexical-access behaviour."],
+  ["Vocabulary", "Brunet's W · Honore's R", "Frequency-sensitive vocabulary richness."],
+  ["Content units", "CIU ratio · pronoun-to-noun ratio", "Informative content and noun/pronoun substitution patterns."],
 ] as const;
 
 const REFERENCES = [
-  ["Fraser, K.C., Meltzer, J.A., & Rudzicz, F.", "2016", "Linguistic features identify Alzheimer's disease in narrative speech", "Journal of Alzheimer's Disease, 49(2), 407–422"],
-  ["Becker, J.T., Boiler, F., Lopez, O.L., Saxton, J., & McGonigle, K.L.", "1994", "The natural history of Alzheimer's disease: Description of study cohort and accuracy of diagnosis", "Archives of Neurology, 51(6), 585–594"],
-  ["Balabin, H., et al.", "2025", "Leveraging speech and NLP for cognitive decline detection", "Journal of Alzheimer's Disease"],
-  ["Chou, H.C., et al.", "2024", "Linguistic biomarker classification from clinical speech transcripts", "INTERSPEECH 2024"],
+  ["Fraser, K. C., Meltzer, J. A., & Rudzicz, F.", "2016", "Linguistic Features Identify Alzheimer's Disease in Narrative Speech", "Journal of Alzheimer's Disease, 49(2), 407–422. DOI 10.3233/JAD-150520"],
+  ["Becker, J. T., Boller, F., Lopez, O. L., Saxton, J., & McGonigle, K. L.", "1994", "The Natural History of Alzheimer's Disease: Description of Study Cohort and Accuracy of Diagnosis", "Archives of Neurology, 51(6), 585–594. DOI 10.1001/archneur.1994.00540180063015"],
+  ["Luz, S., Haider, F., de la Fuente, S., Fromm, D., & MacWhinney, B.", "2020", "Alzheimer's Dementia Recognition through Spontaneous Speech: The ADReSS Challenge", "INTERSPEECH 2020, 2172–2176. DOI 10.21437/Interspeech.2020-2571"],
+  ["Lanzi, A. M., Saylor, A. K., Fromm, D., Liu, H., MacWhinney, B., & Cohen, M. L.", "2023", "DementiaBank: Theoretical Rationale, Protocol, and Illustrative Analyses", "American Journal of Speech-Language Pathology, 32(2), 426–438. DOI 10.1044/2022_AJSLP-22-00281"],
 ] as const;
 
 function SectionIndex({ index, children }: { index: string; children: ReactNode }) {
   return <div className="section-index"><span>{index}</span><span>{children}</span></div>;
 }
 
-function retentionClass(v: number) {
-  if (v >= .8) return "retention-high";
-  if (v >= .5) return "retention-mid";
-  if (v >= .2) return "retention-low";
-  return "retention-critical";
+function ProtocolAudit() {
+  return <div className="protocol-audit">
+    <div className="protocol-audit-label">REPRODUCIBILITY / PROTOCOL AUDIT</div>
+    <div className="protocol-audit-grid">
+      <div><span>README BASELINE</span><strong>73.4%</strong><p>Original-speech baseline reported from the baseline routine using stratified 5-fold cross-validation.</p></div>
+      <div><span>DEGRADATION L0 REFERENCE</span><strong>{COMMITTED_DEGRADATION_L0.toFixed(1)}%</strong><p>The committed degradation routine fits on all L0 samples and predicts those same L0 samples for its reference value.</p></div>
+      <div className="protocol-audit-conclusion"><span>HOW THIS SITE HANDLES IT</span><p><strong>It does not silently merge the two protocols.</strong> L0 is labelled as the CV baseline; L1–L4 are labelled as degradation evaluations. For a final paper-quality curve, regenerate L0–L4 with fold-wise out-of-fold predictions under one shared protocol.</p></div>
+    </div>
+  </div>;
 }
 
 export default function Research() {
   const [tab, setTab] = useState<Tab>("methodology");
 
-  return (
-    <div className="research-page">
-      <section className="research-hero">
-        <SectionIndex index="02 / RESEARCH">METHODS · RESULTS · REPRODUCIBILITY</SectionIndex>
-        <div className="research-title-grid">
-          <div>
-            <h1>ParaTrace: measuring clinical signal erosion under LLM rewriting.</h1>
-            <p className="research-authors">Marie Sindhu · University of Ottawa · CYM 2026</p>
-          </div>
-          <div className="abstract-block">
-            <span>ABSTRACT</span>
-            <p>AI clinical scribes are optimized to produce fluent documentation. ParaTrace asks whether that transformation is compatible with speech-based cognitive screening. Using 552 clinically labelled DementiaBank Pitt transcripts, two LLM backends, four rewrite levels and 20 linguistic biomarkers, diagnostic accuracy fell toward chance under strong rewriting while semantic content remained high.</p>
-          </div>
-        </div>
-        <div className="research-statline">
-          <div><strong>552</strong><span>transcripts</span></div><div><strong>4,416</strong><span>rewrites</span></div><div><strong>20</strong><span>biomarkers</span></div><div><strong>8</strong><span>categories</span></div><div><strong>2</strong><span>LLM backends</span></div>
-        </div>
-      </section>
-
-      <div className="research-tabs" role="tablist" aria-label="Research sections">
-        {([['methodology','01 Methodology'],['results','02 Results'],['features','03 Feature analysis'],['references','04 References']] as [Tab,string][]).map(([key,label]) => (
-          <button role="tab" aria-selected={tab===key} key={key} className={tab===key ? "research-tab active" : "research-tab"} onClick={() => setTab(key)}>{label}</button>
-        ))}
+  return <div className="research-page">
+    <section className="research-hero">
+      <SectionIndex index="02 / RESEARCH">METHODS · RESULTS · SOURCE EVIDENCE</SectionIndex>
+      <div className="research-title-grid">
+        <div><h1>ParaTrace: measuring clinical signal erosion under LLM rewriting.</h1><p className="research-authors">Marie Sindhu · University of Ottawa · CYM 2026</p></div>
+        <div className="abstract-block"><span>PROJECT SUMMARY</span><p>ParaTrace studies a compatibility risk between AI documentation and speech-based cognitive analysis. The public repository reports 552 clinically labelled DementiaBank Pitt transcripts, two LLM backends, four rewrite levels, 4,416 rewrites and 20 extracted linguistic features. The interface below separates project-generated evidence from external literature and explicitly flags an evaluation-protocol mismatch present in the committed analysis code.</p></div>
       </div>
+      <div className="research-statline"><div><strong>552</strong><span>project transcripts</span></div><div><strong>4,416</strong><span>LLM rewrites</span></div><div><strong>20</strong><span>features</span></div><div><strong>4</strong><span>rewrite levels</span></div><div><strong>2</strong><span>LLM backends</span></div></div>
+      <div className="accuracy-note"><strong>SOURCE DISCIPLINE</strong> ParaTrace-specific numbers come from the repository's README, result artifacts and implementation. External papers establish corpus provenance and prior speech/language evidence; they are not used to manufacture ParaTrace results.</div>
+    </section>
 
-      {tab === "methodology" && (
-        <div className="research-content">
-          <section className="paper-section">
-            <div className="paper-margin"><span>01.1</span><p>CORPUS</p></div>
-            <div className="paper-body">
-              <h2>DementiaBank Pitt Corpus</h2>
-              <p className="lead">The study uses Cookie Theft picture-description transcripts from clinically labelled control and dementia groups. The access-controlled source data are not stored in the public repository.</p>
-              <div className="corpus-grid">
-                <div><span>TOTAL</span><strong>552</strong><small>transcripts</small></div>
-                <div><span>CONTROL</span><strong>243</strong><small>44%</small></div>
-                <div><span>DEMENTIA</span><strong>309</strong><small>56%</small></div>
-                <div><span>TASK</span><strong>Cookie Theft</strong><small>BDAE picture description</small></div>
-              </div>
-              <p>Only Cookie Theft transcripts are used so that the linguistic structure and elicitation task remain comparable. Classification is binary (Control vs Dementia). The raw Pitt Corpus remains subject to TalkBank/DementiaBank access controls.</p>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>01.2</span><p>PIPELINE</p></div>
-            <div className="paper-body">
-              <h2>Experimental pipeline</h2>
-              <div className="method-list">
-                {PIPELINE.map(([n, name, tool, description]) => <div className="method-row" key={name}><span className="method-num">{n}</span><div><strong>{name}</strong><code>{tool}</code></div><p>{description}</p></div>)}
-              </div>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>01.3</span><p>INTERVENTION</p></div>
-            <div className="paper-body">
-              <h2>Four controlled rewrite levels</h2>
-              <div className="intervention-table">
-                {[
-                  ["L1", "Grammar correction", "Fix spelling and grammar while preserving disfluencies and original wording as much as possible."],
-                  ["L2", "Light paraphrase", "Remove obvious fillers and smooth phrasing while maintaining the same propositional content."],
-                  ["L3", "Moderate rewrite", "Reorganize ideas, remove repetition and improve vocabulary and sentence structure."],
-                  ["L4", "Full reformulation", "Produce a professional, fluent rewrite representative of high-intervention documentation."],
-                ].map(([level,name,desc]) => <div key={level}><span>{level}</span><strong>{name}</strong><p>{desc}</p></div>)}
-              </div>
-              <div className="method-note"><span>DESIGN CONTROL</span><p>Every rewrite is paired with its original transcript, enabling within-transcript comparison of feature movement rather than comparison between unrelated speakers.</p></div>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {tab === "results" && (
-        <div className="research-content">
-          <section className="paper-section">
-            <div className="paper-margin"><span>02.1</span><p>PRIMARY RESULT</p></div>
-            <div className="paper-body">
-              <h2>Diagnostic performance approaches chance.</h2>
-              <p className="lead">The baseline classifier reaches 73.4% on original speech. Under moderate and full rewriting, both LLM backends converge near the 50% chance level.</p>
-              <div className="result-table">
-                <div className="result-head"><span>LEVEL</span><span>INTERVENTION</span><span>ANTHROPIC</span><span>OPENAI</span><span>AVERAGE</span></div>
-                {ACCURACY.map((row) => <div className={row.level === "L3" || row.level === "L4" ? "result-row critical" : "result-row"} key={row.level}><span>{row.level}</span><span>{row.description}</span><span>{row.anthropic.toFixed(1)}%</span><span>{row.openai.toFixed(1)}%</span><span><strong>{row.average.toFixed(1)}%</strong></span></div>)}
-              </div>
-              <div className="finding-callout"><span>KEY FINDING</span><p>Semantic similarity remained above 83% even as diagnostic accuracy collapsed. The rewrite preserved <em>what</em> the patient said while altering <em>how</em> it was said.</p></div>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>02.2</span><p>STATISTICS</p></div>
-            <div className="paper-body">
-              <h2>Feature change is broad, not isolated.</h2>
-              <div className="stat-evidence">
-                <div><strong>19 / 20</strong><span>features significantly altered by L2</span><small>paired Wilcoxon, p &lt; 0.05</small></div>
-                <div><strong>20 / 20</strong><span>features altered by L4 in the project analysis</span><small>system-wide linguistic transformation</small></div>
-                <div><strong>2 / 2</strong><span>LLM backends converge toward chance</span><small>architecture-general failure pattern</small></div>
-              </div>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>02.3</span><p>RETENTION</p></div>
-            <div className="paper-body">
-              <h2>Biomarker Retention Ratio</h2>
-              <p>BRR compares the magnitude of diagnostic group separation after rewriting with the original separation. A value near 1 indicates preservation; values approaching 0 indicate erosion.</p>
-              <div className="brr-table">
-                <div className="brr-head"><span>FEATURE</span><span>L1</span><span>L2</span><span>L3</span><span>L4</span></div>
-                {BRR.map(([name,...values]) => <div className="brr-row" key={name}><span>{name}</span>{values.map((v,i) => <span className={retentionClass(v)} key={i}>{v.toFixed(2)}</span>)}</div>)}
-              </div>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {tab === "features" && (
-        <div className="research-content">
-          <section className="paper-section">
-            <div className="paper-margin"><span>03.1</span><p>IMPORTANCE</p></div>
-            <div className="paper-body">
-              <h2>Which features carry the most signal?</h2>
-              <p className="lead">Global coherence, pronoun-to-noun ratio and CIU ratio are the strongest predictors in the project’s feature-importance analysis.</p>
-              <div className="importance-chart">
-                {IMPORTANCE.map(([name,value],i) => <div className="importance-row" key={name}><span>{String(i+1).padStart(2,'0')}</span><strong>{name}</strong><div className="importance-track"><i style={{width:`${(value/.15)*100}%`}} /></div><code>{value.toFixed(3)}</code></div>)}
-              </div>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>03.2</span><p>TAXONOMY</p></div>
-            <div className="paper-body">
-              <h2>Eight biomarker categories</h2>
-              <div className="category-list">
-                {CATEGORIES.map(([name,features,tool,why],i) => <div className="category-row" key={name}><span>{String(i+1).padStart(2,'0')}</span><div><strong>{name}</strong><code>{tool}</code></div><div><span>{features}</span><p>{why}</p></div></div>)}
-              </div>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>03.3</span><p>INTERPRETATION</p></div>
-            <div className="paper-body">
-              <h2>Why rewriting is clinically consequential</h2>
-              <div className="two-column-copy"><p>Clinical language models are rewarded for coherence, concision and fluency. Those are valuable documentation properties, but they are not neutral transformations when downstream analysis depends on disfluency, repetition, lexical choice, syntactic simplification or discourse coherence.</p><p>ParaTrace therefore treats the raw transcript as a measurement surface. The proposed safeguard extracts the linguistic profile before any generative rewrite, then keeps the polished note and the preserved profile as separate outputs.</p></div>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {tab === "references" && (
-        <div className="research-content">
-          <section className="paper-section">
-            <div className="paper-margin"><span>04.1</span><p>REFERENCES</p></div>
-            <div className="paper-body">
-              <h2>Selected literature</h2>
-              <div className="reference-list">{REFERENCES.map(([authors,year,title,journal],i) => <div className="reference-row" key={title}><span>{String(i+1).padStart(2,'0')}</span><p>{authors} ({year}). <em>{title}</em>. <span>{journal}.</span></p></div>)}</div>
-            </div>
-          </section>
-
-          <section className="paper-section">
-            <div className="paper-margin"><span>04.2</span><p>REPRODUCIBILITY</p></div>
-            <div className="paper-body">
-              <h2>Open pipeline, controlled data access.</h2>
-              <div className="repro-box"><span>SOURCE</span><a href="https://github.com/cybr-wisp/paratrace-cym2026" target="_blank" rel="noreferrer">github.com/cybr-wisp/paratrace-cym2026 ↗</a><p>Code, analysis scripts and the reproducible pipeline are public. DementiaBank participant transcripts require separate TalkBank access and are not included in the repository. LLM responses are disk-cached for reproducibility.</p></div>
-              <div className="citation-box"><span>CITATION</span><pre>{`@inproceedings{sindhu2026paratrace,\n  title={ParaTrace: AI makes dementia invisible},\n  author={Sindhu, Marie},\n  booktitle={CYM 2026},\n  year={2026},\n  institution={University of Ottawa}\n}`}</pre></div>
-            </div>
-          </section>
-        </div>
-      )}
+    <div className="research-tabs" role="tablist" aria-label="Research sections">
+      {([['methodology','01 Methodology'],['results','02 Results'],['features','03 Feature system'],['sources','04 Sources & paper scans']] as [Tab,string][]).map(([key,label]) => <button role="tab" aria-selected={tab === key} key={key} className={tab === key ? "research-tab active" : "research-tab"} onClick={() => setTab(key)}>{label}</button>)}
     </div>
-  );
+
+    {tab === "methodology" && <div className="research-content">
+      <section className="paper-section"><div className="paper-margin"><span>01.1</span><p>CORPUS</p></div><div className="paper-body"><h2>DementiaBank Pitt / Cookie Theft</h2><p className="lead">ParaTrace's processed study set contains 552 labelled transcripts: 243 control and 309 dementia. These are project-level counts and should not be confused with sample counts in any one external paper.</p><div className="corpus-grid"><div><span>TOTAL</span><strong>552</strong><small>processed project transcripts</small></div><div><span>CONTROL</span><strong>243</strong><small>44%</small></div><div><span>DEMENTIA</span><strong>309</strong><small>56%</small></div><div><span>TASK</span><strong>Cookie Theft</strong><small>picture description</small></div></div><p>The underlying clinical media/transcripts are governed by DementiaBank/TalkBank access rules and are not redistributed by this public showcase. Becker et al. (1994) is the foundational Pitt cohort citation used in the source section.</p></div></section>
+
+      <section className="paper-section"><div className="paper-margin"><span>01.2</span><p>PIPELINE</p></div><div className="paper-body"><h2>What the repository actually computes</h2><div className="method-list">{PIPELINE.map(([n,name,tool,description]) => <div className="method-row" key={name}><span className="method-num">{n}</span><div><strong>{name}</strong><code>{tool}</code></div><p>{description}</p></div>)}</div><div className="method-note"><span>FEATURE EXTRACTOR</span><p>The extractor returns 20 features across eight groups and uses spaCy, sentence-transformers and lexicalrichness before arithmetic aggregation. Arbitrary web-demo input is therefore only a faithful research-pipeline run when the FastAPI backend is running.</p></div></div></section>
+
+      <section className="paper-section"><div className="paper-margin"><span>01.3</span><p>INTERVENTION</p></div><div className="paper-body"><h2>Four controlled rewrite levels</h2><div className="intervention-table">{REWRITE_LEVELS.map((row) => <div key={row.level}><span>L{row.level}</span><strong>{row.name}</strong><p>{row.description}</p></div>)}</div><div className="method-note"><span>MODEL IMPLEMENTATION</span><p>The current repository rewrite module calls <strong>gpt-4o-mini</strong> and <strong>claude-sonnet-4-6</strong> with temperature 0.3. The interface labels backend outputs rather than treating model names as timeless study metadata.</p></div></div></section>
+
+      <section className="paper-section"><div className="paper-margin"><span>01.4</span><p>EVALUATION</p></div><div className="paper-body"><h2>Baseline and degradation are not currently the same evaluation protocol.</h2><p className="lead">This matters enough to display rather than hide.</p><ProtocolAudit /></div></section>
+    </div>}
+
+    {tab === "results" && <div className="research-content">
+      <section className="paper-section"><div className="paper-margin"><span>02.1</span><p>REPORTED SUMMARY</p></div><div className="paper-body"><h2>Rewriting approaches chance-level classification in the repository summary.</h2><p className="lead">The README reports a 73.4% L0 CV baseline and L3/L4 average values of 50.7% and 51.7%. Semantic similarity is reported as remaining above 83%.</p><div className="research-chart-wide"><StudyAccuracyChart activeLevel={3} /></div><div className="result-table"><div className="result-head result-head-protocol"><span>LEVEL</span><span>INTERVENTION</span><span>ANTHROPIC</span><span>OPENAI</span><span>AVERAGE</span><span>PROTOCOL</span></div>{STUDY_ACCURACY.map((row) => <div className={row.level >= 3 ? "result-row result-row-protocol critical" : "result-row result-row-protocol"} key={row.level}><span>L{row.level}</span><span>{row.label}</span><span>{row.anthropic.toFixed(1)}%</span><span>{row.openai.toFixed(1)}%</span><span><strong>{row.average.toFixed(1)}%</strong></span><span className="protocol-cell">{row.protocol}</span></div>)}</div><div className="finding-callout"><span>PROJECT CLAIM</span><p>The public repository summarizes the central phenomenon as a “what vs. how” gap: semantic content stays highly similar while the linguistic representation used for classification changes substantially.</p></div><ProtocolAudit /></div></section>
+
+      <section className="paper-section"><div className="paper-margin"><span>02.2</span><p>PAIRED STATISTICS</p></div><div className="paper-body"><h2>At L2, 19 of 20 features are significant in each backend.</h2><p className="lead">The table below uses exact percentage-change values from the committed <code>statistical_tests.json</code>, not hand-entered “retention” estimates.</p><div className="evidence-matrix research-evidence"><div className="evidence-matrix-head"><span>FEATURE / L2 CHANGE FROM L0</span><span>ANTHROPIC</span><span>OPENAI</span></div>{L2_FEATURE_CHANGES.map((row) => <div className="evidence-matrix-row" key={row.name}><span>{row.name}</span><strong className={row.significantAnthropic ? "evidence-hot" : "evidence-neutral"}>{row.anthropic > 0 ? "+" : ""}{row.anthropic.toFixed(2)}%</strong><strong className={row.significantOpenAI ? "evidence-hot" : "evidence-neutral"}>{row.openai > 0 ? "+" : ""}{row.openai.toFixed(2)}%</strong></div>)}<div className="evidence-matrix-foot"><span>Incomplete-word rate is the non-significant feature in this L2 slice.</span><span>paired Wilcoxon · p &lt; 0.05</span></div></div><div className="method-note"><span>WHY NO SIMPLIFIED BRR HEATMAP HERE?</span><p>The repository defines BRR as |d<sub>level</sub>| / |d<sub>original</sub>|, so values can exceed 1 when group separation increases after rewriting. A decorative 0–1 “signal survival” heatmap would therefore misstate the artifact. This site uses exact paired-change values unless the full backend-specific BRR artifact is rendered directly.</p></div></div></section>
+    </div>}
+
+    {tab === "features" && <div className="research-content">
+      <section className="paper-section"><div className="paper-margin"><span>03.1</span><p>FEATURE SYSTEM</p></div><div className="paper-body"><h2>Twenty measurements across eight linguistic categories.</h2><p className="lead">These names follow the repository extractor. They are measurements—not independent clinical diagnoses.</p><div className="feature-taxonomy">{CATEGORIES.map(([name,features,why],index) => <div key={name}><span>{String(index + 1).padStart(2,"0")}</span><strong>{name}</strong><code>{features}</code><p>{why}</p></div>)}</div></div></section>
+
+      <section className="paper-section"><div className="paper-margin"><span>03.2</span><p>INTERPRETATION</p></div><div className="paper-body"><h2>What the live visualizations mean.</h2><div className="interpretation-grid"><div><span>LIVE SURFACE PROXY</span><p>Word count, lexical uniqueness, fillers, repetitions, fragments, pronoun share, content-word share and sentence length are computed instantly in the browser. They are deterministic descriptive signals only.</p></div><div><span>VERIFIED FEATURE RUN</span><p>When the backend is available, the site calls the repository's 20-feature extraction logic and can compare the resulting original/rewrite vectors.</p></div><div><span>STUDY-LEVEL CLASSIFICATION</span><p>Accuracy percentages belong to the study dataset. The public live demo intentionally does not convert a visitor's short transcript into a dementia/control verdict.</p></div></div></div></section>
+    </div>}
+
+    {tab === "sources" && <div className="research-content">
+      <section className="paper-section source-section"><div className="paper-margin"><span>04.1</span><p>PRIMARY SOURCES</p></div><div className="paper-body"><h2>Read the papers behind the corpus and language-analysis context.</h2><p className="lead">These are real cropped first-page/title renders from the linked source PDFs, bundled into the site so a judge can inspect the literature without leaving the exhibit. Click any page to open the original source.</p><div className="source-gallery">{VERIFIED_SOURCES.map((source) => <a className="source-card" href={source.href} target="_blank" rel="noreferrer" key={source.id}><div className="source-image-wrap"><img src={source.image} alt={`Cropped first page of ${source.title}`} loading="lazy" /></div><div className="source-card-body"><span>{source.year} / SOURCE PDF</span><h3>{source.title}</h3><p className="source-authors">{source.authors} · {source.venue}</p><p>{source.supports}</p><strong>OPEN ORIGINAL PDF ↗</strong></div></a>)}</div><div className="source-rules"><strong>BOUNDARY</strong> The screenshots support literature provenance and context only. ParaTrace's 552-transcript counts, rewrite results and statistical tests come from the project repository.</div></div></section>
+
+      <section className="paper-section"><div className="paper-margin"><span>04.2</span><p>REFERENCES</p></div><div className="paper-body"><h2>Verified bibliography</h2><div className="reference-list">{REFERENCES.map(([authors,year,title,venue],index) => <div className="reference-row" key={title}><span>[{index + 1}]</span><p><strong>{authors}</strong> ({year}). {title}. <em>{venue}</em></p></div>)}</div></div></section>
+    </div>}
+  </div>;
 }
