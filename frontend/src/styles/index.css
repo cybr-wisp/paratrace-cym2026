@@ -160,3 +160,8 @@ a { color: inherit; }
 @media (max-width:760px){.evidence-matrix-head,.evidence-matrix-row{grid-template-columns:minmax(150px,1fr) 92px 92px}.evidence-matrix-head span,.evidence-matrix-row>span,.evidence-matrix-row>strong{padding:11px 9px}.evidence-matrix-foot{flex-direction:column}.protocol-mini-audit{grid-template-columns:1fr;gap:6px}.protocol-audit-grid{grid-template-columns:1fr}.protocol-audit-grid>div{border-right:0;border-bottom:1px solid var(--line)}.protocol-audit-grid>div:nth-child(2){border-bottom:0}.result-head-protocol,.result-row-protocol{grid-template-columns:52px minmax(120px,1.2fr) 78px 78px 78px minmax(120px,.8fr)!important;min-width:720px}.result-table{overflow-x:auto}.source-gallery{grid-template-columns:1fr}.source-card:nth-child(n){border-right:0;border-bottom:1px solid var(--ink);border-top:0}.source-card:last-child{border-bottom:0}}
 .source-image-wrap{height:220px;padding:10px}.source-image-wrap img{object-fit:contain;object-position:center}
 @media (max-width:760px){.source-image-wrap{height:230px}}
+
+/* v3 — one-shot verified L0→L4 trace */
+.rewrite-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.instrument-loading span{max-width:620px;text-align:center}
+@media (max-width:760px){.rewrite-toolbar-actions{align-items:stretch;justify-content:flex-start;flex-direction:column;width:100%}.rewrite-toolbar-actions .primary-action{width:100%}.workspace-toolbar{align-items:stretch;flex-direction:column}}
