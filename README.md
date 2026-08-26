@@ -1,5 +1,6 @@
 
 <div align="center">
+
 # ParaTrace
  
 ### Measuring Linguistic Biomarker Degradation Under LLM Rewriting of Clinical Speech
@@ -21,16 +22,15 @@
  
 Healthcare systems are deploying **AI clinical scribes** (18 vendors approved in Ontario, DAX Copilot piloting at The Ottawa Hospital) to transform spontaneous patient speech into polished clinical documentation. At the same time, Canada's National Dementia Strategy prioritizes **early detection through computational speech analysis**.
  
-These two priorities are on a collision course. AI scribes are designed to normalize the exact speech patterns -- fillers, repetitions, syntactic hesitations, reduced coherence -- that computational screening uses to detect cognitive decline. **No existing study has tested whether they are compatible.**
+These two priorities are on a collision course. AI scribes are designed to normalize the exact speech patterns: fillers, repetitions, syntactic hesitations, reduced coherence -- that computational screening uses to detect cognitive decline. **No existing study has tested whether they are compatible.**
  
 > **A language model rewrite can preserve *what* a patient says while systematically erasing *how* they say it.**
  
 If downstream diagnostic algorithms evaluate rewritten notes rather than raw transcripts, semantic fidelity alone is insufficient to retain predictive signal. ParaTrace measures this failure mode by treating LLM rewriting as a controlled source of distribution shift across clinically validated linguistic biomarkers.
  
----
+--
  
-## Research Question
- 
+## Research Question: 
 > **When LLMs rewrite clinical speech transcripts across progressive intervention levels, which cognitive-linguistic biomarkers are preserved, which are altered, and how severely does this alteration degrade downstream cognitive-status classification?**
  
 ---
