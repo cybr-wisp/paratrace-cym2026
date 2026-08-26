@@ -249,6 +249,30 @@ python src/paratrace/analysis/solution.py \
   --output data/results/
 ```
 
+---
+
+## Engineering Highlights
+
+- Built a reproducible evaluation pipeline over **552 clinically labeled transcripts**, generating **4,416 LLM rewrites** across **4 intervention levels** and **2 model providers**.
+
+- Engineered a **20-feature NLP extraction pipeline across 8 linguistic categories**, covering lexical diversity, repetition, fluency, syntax, coherence, word finding, and information density.
+
+- Evaluated **8 rewritten model conditions plus the L0 baseline** using identical preprocessing and **stratified 5-fold cross-validation** to prevent evaluation drift across experiments.
+
+- Quantified a **21.2 percentage-point accuracy drop**, from **73.4% at baseline to 52.2% at L3**, with L4 remaining near chance at **53.8%**.
+
+- Detected significant feature-distribution shift by L2: **19/20 biomarkers changed under Anthropic and 20/20 under OpenAI**, using paired Wilcoxon signed-rank tests with Benjamini-Hochberg FDR correction.
+
+- Separated semantic fidelity from predictive fidelity: rewritten transcripts retained **>83% semantic cosine similarity** even as downstream classification approached chance performance.
+
+- Implemented deterministic rewrite caching and reusable CLI workflows across **5 pipeline stages**: ingestion, feature extraction, LLM rewriting, classification/statistical analysis, and mitigation analysis.
+
+- Persisted reproducible experiment outputs as **4 machine-readable result artifacts**, covering degradation metrics, statistical tests, biomarker-retention analysis, and sample biomarker profiles.
+
+- Structured the project as a modular Python system with a **FastAPI backend, React frontend, Docker configuration, CLI tooling, and versioned experimental protocol**.
+
+---
+
 ## Project Structure
 
 ```text
