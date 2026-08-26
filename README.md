@@ -1,13 +1,11 @@
+
 <div align="center">
-
 # ParaTrace
-
-</div>
-
-### Measuring linguistic biomarker degradation under LLM rewriting of clinical speech
-
-**A controlled computational study of whether language-model rewriting preserves linguistic features used in cognitive-status classification.**
-
+ 
+### Measuring Linguistic Biomarker Degradation Under LLM Rewriting of Clinical Speech
+ 
+**A controlled computational study evaluating whether language-model rewriting preserves linguistic features used in cognitive-status classification.**
+ 
 ![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Conference](https://img.shields.io/badge/Conference-CYM%202026-orange)
@@ -16,138 +14,101 @@
 ![Sentence Transformers](https://img.shields.io/badge/Sentence%20Transformers-FFD43B?logo=huggingface&logoColor=black)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
-
----
-
-## Research question
-
-AI-assisted documentation systems can transform spontaneous speech into cleaner, more concise text.
-
-ParaTrace asks:
-
-> **When LLMs rewrite clinical speech at progressively stronger intervention levels, which cognitive-linguistic biomarkers are preserved, which are altered, and how do those changes affect downstream cognitive-status classification?**
-
-The study treats LLM rewriting as a controlled linguistic intervention. The same feature extraction and downstream evaluation pipeline is applied to the original transcript and to each rewritten condition, allowing the effect of rewrite intensity to be measured systematically.
-
----
-
-## The problem
-
-Clinical documentation systems are designed to improve readability, structure, and efficiency.
-
-Computational cognitive assessment can depend on a very different set of properties: the structure of spontaneous speech itself.
-
-Features such as fillers, repetitions, lexical diversity, syntactic complexity, word-finding behavior, and discourse coherence can contribute measurable signal to cognitive-status classification. These are also features that an LLM may normalize when rewriting speech into polished clinical prose.
-
-This creates a potential information-preservation problem:
-
-> **A rewrite can preserve what a patient says while altering how it is expressed.**
-
-If downstream models rely on the linguistic form of the original speech, semantic fidelity alone may not be sufficient to preserve the information those models use.
-
-ParaTrace evaluates this failure mode directly by treating LLM rewriting as a controlled source of distribution shift over clinically relevant linguistic features.
-
-The project does **not** test whether AI scribes impair real-world clinical diagnosis. It evaluates whether controlled LLM rewriting alters a defined linguistic feature representation and whether those changes degrade a downstream cognitive-status classifier.
-
----
-
-## Pre-specified hypotheses
-
-The hypotheses, experimental variables, evaluation procedure, and statistical tests were frozen on **August 18, 2026**, before the final analysis was completed.
-
-The complete protocol, including the original quantitative thresholds, is available in [`protocol.md`](protocol.md).
-
-### H1: Progressive biomarker degradation
-
-Increasing rewrite intensity was expected to produce progressively larger deviations from the linguistic feature values observed in the original transcripts.
-
-### H2: Semantic preservation with linguistic signal loss
-
-Semantic content was expected to remain highly similar to the original transcript while stronger rewriting progressively altered linguistic features used by the downstream classifier.
-
-### H3: Downstream classifier degradation
-
-A classifier trained on features extracted from original L0 transcripts was expected to lose predictive performance when evaluated on progressively rewritten L1-L4 feature distributions.
-
-### H4: Differential biomarker vulnerability
-
-Fluency, repetition, and word-finding features were expected to be altered at lower intervention levels than semantic coherence and content-information features.
-
-### H5: Cross-backend consistency
-
-Similar degradation patterns were expected across the two evaluated LLM backends, which would provide evidence that the observed effect is not unique to a single provider.
-
-These hypotheses are reported separately from the observed results. The exact frozen wording is preserved in [`protocol.md`](protocol.md).
-
----
-
-## Experimental design
-
-**Experimental Design Diagram []**
-
-
-
-
-
-
-## Research question
-
-Clinical documentation systems can transform spontaneous patient speech into cleaner and more concise text.
-
-For cognitive-language analysis, however, properties that make spontaneous speech less fluent can also contain measurable information. These include repetition, fillers, syntactic simplification, lexical choice, discourse coherence, and word-finding behavior.
-
-ParaTrace asks:
-
-> **When LLMs rewrite clinical speech transcripts at progressive intervention levels, which cognitive-linguistic biomarkers survive, which are altered, and does that alteration degrade downstream cognitive-status classification?**
-
-The project treats LLM rewriting as a controlled linguistic perturbation and measures how that perturbation propagates through a fixed downstream analysis pipeline.
-
-
----
-
-## The problem
-
-Ontario is deploying AI clinical scribes across its healthcare system (18 vendors approved, DAX Copilot piloting at The Ottawa Hospital) while Canada's National Dementia Strategy simultaneously prioritizes early detection through speech-based cognitive screening. These two priorities are on a collision course: AI scribes are designed to smooth out the exact speech patterns (fillers, repetitions, syntactic simplification, reduced coherence) that computational screening uses to detect cognitive decline. **No existing study has tested whether they are compatible.**
-
-## What we found
-
-We ran 552 clinically labeled transcripts from the DementiaBank Pitt Corpus through two LLM backends at four progressive intervention levels (4,416 total rewrites) and measured what happened to 20 linguistic biomarkers.
-
-<img src="docs/degradation_curve.png" alt="Diagnostic Signal Erasure" width="700">
-
-| Level | Description | Anthropic | OpenAI | Average |
-|-------|------------|-----------|--------|---------|
-| L0 | Original speech | 73.4% | 73.4% | 73.4% |
-| L1 | Grammar correction | 78.1% | 74.8% | 76.5% |
-| L2 | Light paraphrase | 65.9% | 58.7% | 62.3% |
-| L3 | Moderate rewrite | 47.6% | 53.8% | 50.7% |
-| L4 | Full reformulation | 53.8% | 49.6% | 51.7% |
-
-At Level 4, both backends independently converged to chance (50%), confirming biomarker erasure is architecture-general. Wilcoxon testing showed 19 of 20 features significantly altered (p < 0.05) by Level 2.
-
-<img src="docs/what_vs_how.png" alt="What vs How Gap" width="700">
-
-Semantic similarity remained above 83% even as diagnostic accuracy collapsed. The AI preserved *what* patients said while erasing *how* they said it.
-
----
-
-## What we found
  
-We ran 552 clinically labeled transcripts from the DementiaBank Pitt Corpus through two LLM backends at four progressive intervention levels (4,416 total rewrites) and measured what happened to 20 linguistic biomarkers.
+</div>
+---
  
-<img src="docs/degradation_curve.png" alt="Diagnostic Signal Erasure" width="700">
-| Level | Description | Anthropic | OpenAI | Average |
-|-------|------------|-----------|--------|---------|
-| L0 | Original speech | 73.4% | 73.4% | 73.4% |
-| L1 | Grammar correction | 68.8% | 66.5% | 67.7% |
-| L2 | Light paraphrase | 62.3% | 56.9% | 59.6% |
-| L3 | Moderate rewrite | 51.8% | 52.5% | 52.2% |
-| L4 | Full reformulation | 54.2% | 53.3% | 53.8% |
+## The Problem
  
-All levels evaluated using stratified 5-fold cross-validation on held-out data. At Level 4, both backends independently converged to chance (~50%), confirming biomarker erasure is architecture-general. Wilcoxon signed-rank tests with Benjamini-Hochberg FDR correction confirmed significant alteration across biomarker categories by Level 2.
+Healthcare systems are deploying **AI clinical scribes** (18 vendors approved in Ontario, DAX Copilot piloting at The Ottawa Hospital) to transform spontaneous patient speech into polished clinical documentation. At the same time, Canada's National Dementia Strategy prioritizes **early detection through computational speech analysis**.
  
-<img src="docs/what_vs_how.png" alt="What vs How Gap" width="700">
-Semantic similarity remained above 83% even as diagnostic accuracy collapsed. The AI preserved *what* patients said while erasing *how* they said it.
+These two priorities are on a collision course. AI scribes are designed to normalize the exact speech patterns -- fillers, repetitions, syntactic hesitations, reduced coherence -- that computational screening uses to detect cognitive decline. **No existing study has tested whether they are compatible.**
+ 
+> **A language model rewrite can preserve *what* a patient says while systematically erasing *how* they say it.**
+ 
+If downstream diagnostic algorithms evaluate rewritten notes rather than raw transcripts, semantic fidelity alone is insufficient to retain predictive signal. ParaTrace measures this failure mode by treating LLM rewriting as a controlled source of distribution shift across clinically validated linguistic biomarkers.
+ 
+---
+ 
+## Research Question
+ 
+> **When LLMs rewrite clinical speech transcripts across progressive intervention levels, which cognitive-linguistic biomarkers are preserved, which are altered, and how severely does this alteration degrade downstream cognitive-status classification?**
+ 
+---
+ 
+## Pre-Specified Hypotheses
+ 
+The protocol, experimental variables, evaluation procedures, and statistical tests were frozen on **August 18, 2026**, prior to final model evaluation. The complete frozen protocol is available in [`docs/protocol.md`](docs/protocol.md).
+ 
+- **H1: Progressive biomarker degradation** -- Increasing rewrite intensity produces monotonically increasing deviation from baseline (L0) feature representations.
+- **H2: Semantic preservation with signal loss** -- Semantic embeddings maintain high similarity across rewrites while structural and syntactic biomarkers undergo significant degradation.
+- **H3: Downstream classifier degradation** -- Classifiers trained on baseline (L0) distributions suffer catastrophic performance drops when evaluated on rewritten (L1-L4) feature spaces.
+- **H4: Differential biomarker vulnerability** -- Fluency, repetition, and word-finding markers degrade at lower intervention thresholds (L1-L2) than global discourse coherence markers (L3-L4).
+- **H5: Cross-backend consistency** -- Biomarker erasure behavior remains consistent across distinct LLM architectures and providers.
+---
+
+---
+
+## Experimental Design
+
+<img src="assets/experimental_design.png" alt="Experimental Design" width="700">
+
+**552** clinically labeled transcripts from the [DementiaBank Pitt Corpus](https://dementia.talkbank.org/) -- **243 Control**, **309 Dementia** -- processed through two LLM backends (GPT-4o-mini, Claude 3.5 Sonnet) at four progressive intervention levels. **4,416 total rewrites.** 20 linguistic biomarkers extracted across 8 clinically grounded categories using spaCy, sentence-transformers, and lexicalrichness.
+
+All hypotheses, variables, and statistical tests were **pre-registered before final analysis**. The complete frozen protocol is available in [`docs/protocol.md`](docs/protocol.md).
+
+---
+
+## System Architecture
+
+<img src="assets/paratrace-architecture.png" alt="ParaTrace System Architecture" width="700">
+
+---
+
+## What We Found
+
+### 1. Diagnostic Signal Erasure
+
+<img src="assets/degradation_curve.png" alt="Diagnostic Signal Degradation Across Rewrite Levels" width="700">
+
+| Level | Intervention | Description | Anthropic | OpenAI | Average |
+|:------|:-------------|:------------|:---------:|:------:|:-------:|
+| **L0** | Baseline | Unaltered spontaneous transcript | **73.4%** | **73.4%** | **73.4%** |
+| L1 | Grammar | Punctuation and grammatical correction | 68.8% | 66.5% | 67.7% |
+| L2 | Paraphrase | Filler removal, structural smoothing | 62.3% | 56.9% | 59.6% |
+| **L3** | **Moderate** | **Clinical note restructuring** | **51.8%** | **52.5%** | **52.2%** |
+| **L4** | **Full** | **Complete prose reformulation** | **54.2%** | **53.3%** | **53.8%** |
+
+**Key findings:**
+
+- **Degradation begins immediately.** Even grammar-only correction (L1) drops accuracy from 73.4% to 67.7%, confirming that disfluency markers carry diagnostic signal.
+- **L3/L4 converge to chance (~50%).** Both backends independently reach coin-flip accuracy, confirming the effect is **architecture-general**, not provider-specific.
+- **19 of 20 features significantly altered by L2.** Wilcoxon signed-rank tests with Benjamini-Hochberg FDR correction (p < 0.05). The single non-significant feature is incomplete-word rate.
+
+All levels evaluated using **stratified 5-fold cross-validation on held-out data** with identical fold assignments across L0 through L4. No train-set leakage.
+
+### 2. The "What vs. How" Gap
+
+<img src="assets/what_vs_how.png" alt="The What vs How Gap" width="700">
+
+While diagnostic accuracy collapses toward random chance, **semantic cosine similarity remains above 83%**. The LLM faithfully preserves semantic content ("what") while erasing diagnostic structural signatures ("how").
+
+### 3. Feature Importance
+
+<img src="assets/feature_importance.png" alt="Feature Importance" width="700">
+
+**Global coherence, pronoun-to-noun ratio, and CIU ratio** are the strongest diagnostic predictors -- precisely the features AI rewriting inflates most aggressively.
+ 
+
+
+
+
+
+
+
+
+
+
 
 
 
