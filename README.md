@@ -16,9 +16,8 @@
 ![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
  
 </div>
----
- 
-## The Problem
+
+## The Problem:
  
 Healthcare systems are deploying **AI clinical scribes** (18 vendors approved in Ontario, DAX Copilot piloting at The Ottawa Hospital) to transform spontaneous patient speech into polished clinical documentation. At the same time, Canada's National Dementia Strategy prioritizes **early detection through computational speech analysis**.
  
@@ -98,6 +97,9 @@ While diagnostic accuracy collapses toward random chance, **semantic cosine simi
 <img src="assets/feature_importance.png" alt="Feature Importance" width="700">
 
 **Global coherence, pronoun-to-noun ratio, and CIU ratio** are the strongest diagnostic predictors -- precisely the features AI rewriting inflates most aggressively.
+
+
+
  
 
 
