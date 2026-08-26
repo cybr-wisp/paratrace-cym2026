@@ -1,4 +1,5 @@
 <div align="center">
+
 # ParaTrace
 
 </div>
@@ -127,6 +128,31 @@ At Level 4, both backends independently converged to chance (50%), confirming bi
 <img src="docs/what_vs_how.png" alt="What vs How Gap" width="700">
 
 Semantic similarity remained above 83% even as diagnostic accuracy collapsed. The AI preserved *what* patients said while erasing *how* they said it.
+
+---
+
+## What we found
+ 
+We ran 552 clinically labeled transcripts from the DementiaBank Pitt Corpus through two LLM backends at four progressive intervention levels (4,416 total rewrites) and measured what happened to 20 linguistic biomarkers.
+ 
+<img src="docs/degradation_curve.png" alt="Diagnostic Signal Erasure" width="700">
+| Level | Description | Anthropic | OpenAI | Average |
+|-------|------------|-----------|--------|---------|
+| L0 | Original speech | 73.4% | 73.4% | 73.4% |
+| L1 | Grammar correction | 68.8% | 66.5% | 67.7% |
+| L2 | Light paraphrase | 62.3% | 56.9% | 59.6% |
+| L3 | Moderate rewrite | 51.8% | 52.5% | 52.2% |
+| L4 | Full reformulation | 54.2% | 53.3% | 53.8% |
+ 
+All levels evaluated using stratified 5-fold cross-validation on held-out data. At Level 4, both backends independently converged to chance (~50%), confirming biomarker erasure is architecture-general. Wilcoxon signed-rank tests with Benjamini-Hochberg FDR correction confirmed significant alteration across biomarker categories by Level 2.
+ 
+<img src="docs/what_vs_how.png" alt="What vs How Gap" width="700">
+Semantic similarity remained above 83% even as diagnostic accuracy collapsed. The AI preserved *what* patients said while erasing *how* they said it.
+
+
+
+
+
 
 ## The solution
 
