@@ -33,9 +33,13 @@ If downstream diagnostic or analytical systems evaluate rewritten notes rather t
 
 ParaTrace extends prior disfluency-removal findings to contemporary LLM-mediated rewriting by measuring whether progressively stronger, semantically preserving transformations alter a broader cognitive-linguistic feature representation and its downstream predictive utility.
 
+---
+
 ## 02. Research Question
 
 > **When LLMs rewrite clinical speech transcripts across progressive intervention levels, which cognitive-linguistic biomarkers are preserved, which are altered, and how severely does this alteration degrade downstream cognitive-status classification?**
+
+---
 
 ## 03. Pre-Specified Hypotheses
 
@@ -50,6 +54,8 @@ The protocol, experimental variables, evaluation procedures, and statistical tes
 - **H4: Differential biomarker vulnerability:** Fluency, repetition, and word-finding markers degrade at lower intervention thresholds, L1 to L2, than global discourse coherence markers, L3 to L4.
 
 - **H5: Cross-backend consistency:** Similar biomarker degradation patterns emerge across the evaluated LLM providers.
+
+---
 
 ## 04. Experimental Design
 
@@ -153,78 +159,172 @@ The proposed architecture remains a **mitigation hypothesis**, not a clinically 
 
 ParaTrace demonstrates that linguistic rewriting can degrade downstream predictive signal and shows computationally why pre-extraction would preserve the original L0 feature representation. Further validation would be required before claiming clinical effectiveness, operational safety, or improved diagnostic outcomes.
 
-
-
 ---
 
-
-
-
-## Architecture
-
-![ParaTrace system architecture](docs/paratrace-architecture.png)
-
-## Feature importance
-
-<img src="docs/feature_importance.png" alt="Feature Importance" width="700">
-
-Global coherence, pronoun-to-noun ratio, and CIU ratio are the strongest diagnostic predictors. These are precisely the features AI rewriting inflates most aggressively.
-
-## Pipeline
-
-| Stage | Script | Description |
-|-------|--------|-------------|
-| Ingestion | `src/paratrace/ingestion/chat_parser.py` | Parse DementiaBank .cha files, preserve disfluencies |
-| Feature extraction | `src/paratrace/features/extractor.py` | 20 biomarkers across 8 categories via spaCy, sentence-transformers, lexicalrichness |
-| LLM rewriting | `src/paratrace/rewriting/rewriting.py` | 4 intervention levels, 2 backends, full disk caching |
-| Classification | `src/paratrace/modeling/classifier.py` | RF/GBT/LogReg with stratified 5-fold CV, degradation analysis, BRR, statistical tests |
-| Solution demo | `src/paratrace/analysis/solution.py` | Pre-extraction vs post-extraction comparison, biomarker profile generation |
-
 ## Quickstart
+
+Clone the repository and create a local environment:
 
 ```bash
 git clone https://github.com/cybr-wisp/paratrace-cym2026.git
 cd paratrace-cym2026
-python -m venv venv && source venv/bin/activate  # Windows: .\venv\Scripts\Activate
-
-pip install pylangacq spacy scikit-learn scipy sentence-transformers lexicalrichness openai anthropic python-dotenv
-python -m spacy download en_core_web_sm
-
-cp .env.example .env  # Add your OpenAI and Anthropic API keys
-
-# Full pipeline (requires DementiaBank access - see data/README.md)
-python src/paratrace/ingestion/chat_parser.py --corpus-dir data/raw/cookie_only --output data/processed/transcripts.csv
-python src/paratrace/features/extractor.py --input data/processed/transcripts.csv --output data/processed/features_L0.csv
-python src/paratrace/rewriting/rewriting.py --input data/processed/transcripts.csv --output-dir data/rewrites --backend both
-python src/paratrace/modeling/classifier.py --mode all --features data/processed/features_L0.csv --features-dir data/processed/ --output data/results/
+python -m venv venv
 ```
 
-## Data
+Activate the environment:
 
-The DementiaBank Pitt Corpus is access-controlled to protect participant privacy. See [`data/README.md`](data/README.md) for how to obtain access and reproduce results. No patient data is stored in this repository.
+**Linux / macOS**
 
-## References
+```bash
+source venv/bin/activate
+```
 
-- Becker, J.T., Boiler, F., Lopez, O.L., Saxton, J., & McGonigle, K.L. (1994). The natural history of Alzheimer's disease: Description of study cohort and accuracy of diagnosis. *Archives of Neurology*, 51(6), 585-594.
-- Balabin, H., et al. (2025). Leveraging speech and NLP for cognitive decline detection. *Journal of Alzheimer's Disease*.
-- Chou, H.C., et al. (2024). Linguistic biomarker classification from clinical speech transcripts. *INTERSPEECH*.
-- Fraser, K.C., Meltzer, J.A., & Rudzicz, F. (2016). Linguistic features identify Alzheimer's disease in narrative speech. *Journal of Alzheimer's Disease*, 49(2), 407-422.
+**Windows PowerShell**
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Install dependencies and the required spaCy model:
+
+```bash
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
+
+Create a local environment file:
+
+```bash
+cp .env.example .env
+```
+
+On Windows:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Add your OpenAI and Anthropic API credentials to `.env`.
+
+> **Dataset access:** Running the full experiment requires authorized access to the DementiaBank Pitt Corpus. Raw participant transcripts are not included in this repository.
+
+## Pipeline
+
+The experiment is organized as a reproducible sequence from raw transcript ingestion to downstream degradation analysis.
+
+| Stage                      | Script                                   | Purpose                                                                            |
+| -------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| **1. Ingestion**           | `src/paratrace/ingestion/chat_parser.py` | Parse DementiaBank CHAT transcripts while preserving relevant linguistic structure |
+| **2. Feature extraction**  | `src/paratrace/features/extractor.py`    | Extract 20 cognitive-linguistic biomarkers across 8 feature categories             |
+| **3. LLM rewriting**       | `src/paratrace/rewriting/rewriting.py`   | Generate L1 to L4 rewrite conditions across both LLM backends                      |
+| **4. Classification**      | `src/paratrace/modeling/classifier.py`   | Evaluate downstream classification, feature drift, and statistical significance    |
+| **5. Mitigation analysis** | `src/paratrace/analysis/solution.py`     | Compare pre-extraction and post-rewrite representations                            |
+
+Run the full experimental pipeline:
+
+```bash
+python src/paratrace/ingestion/chat_parser.py \
+  --corpus-dir data/raw/cookie_only \
+  --output data/processed/transcripts.csv
+
+python src/paratrace/features/extractor.py \
+  --input data/processed/transcripts.csv \
+  --output data/processed/features_L0.csv
+
+python src/paratrace/rewriting/rewriting.py \
+  --input data/processed/transcripts.csv \
+  --output-dir data/rewrites \
+  --backend both
+
+python src/paratrace/modeling/classifier.py \
+  --mode all \
+  --features data/processed/features_L0.csv \
+  --features-dir data/processed/ \
+  --output data/results/
+
+python src/paratrace/analysis/solution.py \
+  --features-dir data/processed/ \
+  --output data/results/
+```
+
+## Project Structure
+
+```text
+paratrace-cym2026/
+│
+├── api/
+│   └── main.py
+│
+├── assets/
+│   └── diagrams/
+│       ├── diagnostic-degradation.png
+│       ├── experimental-pipeline-architecture.png
+│       ├── feature-importance.png
+│       ├── pre-extraction-comparison.png
+│       ├── pre-extraction-mitigation.png
+│       ├── system-architecture.png
+│       └── what-vs-how-gap.png
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   ├── rewrites/
+│   └── results/
+│
+├── docs/
+│   ├── protocol.md
+│   └── research_doc.md
+│
+├── frontend/
+│   └── src/
+│
+├── src/
+│   └── paratrace/
+│       ├── analysis/
+│       ├── features/
+│       ├── ingestion/
+│       ├── modeling/
+│       └── rewriting/
+│
+├── .env.example
+├── Dockerfile
+├── Makefile
+├── pyproject.toml
+├── requirements.txt
+└── README.md
+```
+
+## Data Availability
+
+The DementiaBank Pitt Corpus is access-controlled to protect participant privacy. Raw participant transcripts are **not stored or distributed in this repository**.
+
+Researchers wishing to reproduce the experiment must obtain authorized access directly through [DementiaBank](https://talkbank.org/dementia/access/English/Pitt.html) and comply with the corpus terms of use.
+
+## Acknowledgements
+
+This work was informed by consultations spanning health policy and patient advocacy. Extended policy context, consultation notes, and academic references are documented in [`docs/research_doc.md`](docs/research_doc.md).
+
+* **Nicole Minutti**, Senior Health Policy Advisor at the Office of the Information and Privacy Commissioner of Ontario, provided context on the scope of Ontario's AI-scribe privacy guidance and helped clarify the distinction between privacy compliance, clinical appropriateness, and information fidelity.
+
+* **Christine Aiken**, dementia advocate with Dementia Alliance International, contributed a lived-experience perspective emphasizing the importance of preserving authentic speech characteristics and patient voice when clinical information is transformed.
 
 ## Citation
 
+If you use ParaTrace in research or derivative work:
+
 ```bibtex
 @inproceedings{sindhu2026paratrace,
-  title={ParaTrace: AI makes dementia invisible},
+  title={ParaTrace: Measuring Linguistic Biomarker Degradation Under LLM Rewriting of Clinical Speech},
   author={Sindhu, Marie},
-  booktitle={CYM 2026},
+  booktitle={Connecting Young Minds 2026},
   year={2026},
   institution={University of Ottawa}
 }
 ```
 
-## [License](LICENSE)
+## License
 
-MIT
+[MIT](LICENSE)
 
 ---
 
