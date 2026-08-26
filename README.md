@@ -1,33 +1,4 @@
 <div align="center">
-
-# ParaTrace
-
-**AI makes dementia invisible: diagnostic classification drops to chance after LLM rewriting of clinical speech.**
-
-![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-yellow)
-![Conference](https://img.shields.io/badge/Conference-CYM%202026-orange)
-
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikit-learn&logoColor=white)
-![spaCy](https://img.shields.io/badge/spaCy-09A3D5?logo=spacy&logoColor=white)
-![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
-![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
-![Sentence Transformers](https://img.shields.io/badge/Sentence%20Transformers-FFD43B?logo=huggingface&logoColor=black)
-![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?logo=scipy&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
-![Railway](https://img.shields.io/badge/Railway-0B0D0E?logo=railway&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white)
-![Recharts](https://img.shields.io/badge/Recharts-22B5BF?logoColor=white)
-
-</div>
-
-
-<div align="center">
-
 # ParaTrace
 
 </div>
@@ -45,9 +16,78 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
 
+---
 
+## Research question
+
+AI-assisted documentation systems can transform spontaneous speech into cleaner, more concise text.
+
+ParaTrace asks:
+
+> **When LLMs rewrite clinical speech at progressively stronger intervention levels, which cognitive-linguistic biomarkers are preserved, which are altered, and how do those changes affect downstream cognitive-status classification?**
+
+The study treats LLM rewriting as a controlled linguistic intervention. The same feature extraction and downstream evaluation pipeline is applied to the original transcript and to each rewritten condition, allowing the effect of rewrite intensity to be measured systematically.
 
 ---
+
+## The problem
+
+Clinical documentation systems are designed to improve readability, structure, and efficiency.
+
+Computational cognitive assessment can depend on a very different set of properties: the structure of spontaneous speech itself.
+
+Features such as fillers, repetitions, lexical diversity, syntactic complexity, word-finding behavior, and discourse coherence can contribute measurable signal to cognitive-status classification. These are also features that an LLM may normalize when rewriting speech into polished clinical prose.
+
+This creates a potential information-preservation problem:
+
+> **A rewrite can preserve what a patient says while altering how it is expressed.**
+
+If downstream models rely on the linguistic form of the original speech, semantic fidelity alone may not be sufficient to preserve the information those models use.
+
+ParaTrace evaluates this failure mode directly by treating LLM rewriting as a controlled source of distribution shift over clinically relevant linguistic features.
+
+The project does **not** test whether AI scribes impair real-world clinical diagnosis. It evaluates whether controlled LLM rewriting alters a defined linguistic feature representation and whether those changes degrade a downstream cognitive-status classifier.
+
+---
+
+## Pre-specified hypotheses
+
+The hypotheses, experimental variables, evaluation procedure, and statistical tests were frozen on **August 18, 2026**, before the final analysis was completed.
+
+The complete protocol, including the original quantitative thresholds, is available in [`protocol.md`](protocol.md).
+
+### H1: Progressive biomarker degradation
+
+Increasing rewrite intensity was expected to produce progressively larger deviations from the linguistic feature values observed in the original transcripts.
+
+### H2: Semantic preservation with linguistic signal loss
+
+Semantic content was expected to remain highly similar to the original transcript while stronger rewriting progressively altered linguistic features used by the downstream classifier.
+
+### H3: Downstream classifier degradation
+
+A classifier trained on features extracted from original L0 transcripts was expected to lose predictive performance when evaluated on progressively rewritten L1-L4 feature distributions.
+
+### H4: Differential biomarker vulnerability
+
+Fluency, repetition, and word-finding features were expected to be altered at lower intervention levels than semantic coherence and content-information features.
+
+### H5: Cross-backend consistency
+
+Similar degradation patterns were expected across the two evaluated LLM backends, which would provide evidence that the observed effect is not unique to a single provider.
+
+These hypotheses are reported separately from the observed results. The exact frozen wording is preserved in [`protocol.md`](protocol.md).
+
+---
+
+## Experimental design
+
+**Experimental Design Diagram []**
+
+
+
+
+
 
 ## Research question
 
