@@ -30,18 +30,17 @@
 
 # ParaTrace
 
-### Measuring linguistic biomarker degradation under LLM rewriting of clinical speech
-
+## Measuring linguistic biomarker degradation under LLM rewriting of clinical speech
 **A controlled computational study of whether language-model rewriting preserves linguistic features used in cognitive-status classification.**
 
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Conference](https://img.shields.io/badge/Conference-CYM%202026-orange)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikit-learn&logoColor=white)
 ![spaCy](https://img.shields.io/badge/spaCy-09A3D5?logo=spacy&logoColor=white)
 ![Sentence Transformers](https://img.shields.io/badge/Sentence%20Transformers-FFD43B?logo=huggingface&logoColor=black)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
-![Conference](https://img.shields.io/badge/CYM-2026-orange)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
 </div>
 
