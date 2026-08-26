@@ -18,7 +18,7 @@
  
 </div>
 
-## The Problem:
+## 01. The Problem:
  
 Healthcare systems are deploying **AI clinical scribes** (18 vendors approved in Ontario, DAX Copilot piloting at The Ottawa Hospital) to transform spontaneous patient speech into polished clinical documentation. At the same time, Canada's National Dementia Strategy prioritizes **early detection through computational speech analysis**.
  
@@ -27,24 +27,22 @@ These two priorities are on a collision course. AI scribes are designed to norma
 > **A language model rewrite can preserve *what* a patient says while systematically erasing *how* they say it.**
  
 If downstream diagnostic algorithms evaluate rewritten notes rather than raw transcripts, semantic fidelity alone is insufficient to retain predictive signal. ParaTrace measures this failure mode by treating LLM rewriting as a controlled source of distribution shift across clinically validated linguistic biomarkers.
+
  
---
- 
-## Research Question: 
+## 02. Research Question: 
 > **When LLMs rewrite clinical speech transcripts across progressive intervention levels, which cognitive-linguistic biomarkers are preserved, which are altered, and how severely does this alteration degrade downstream cognitive-status classification?**
  
----
  
-## Pre-Specified Hypotheses
- 
+## 03. (Pre-Specified) Hypotheses
 The protocol, experimental variables, evaluation procedures, and statistical tests were frozen on **August 18, 2026**, prior to final model evaluation. The complete frozen protocol is available in [`docs/protocol.md`](docs/protocol.md).
  
-- **H1: Progressive biomarker degradation** -- Increasing rewrite intensity produces monotonically increasing deviation from baseline (L0) feature representations.
-- **H2: Semantic preservation with signal loss** -- Semantic embeddings maintain high similarity across rewrites while structural and syntactic biomarkers undergo significant degradation.
-- **H3: Downstream classifier degradation** -- Classifiers trained on baseline (L0) distributions suffer catastrophic performance drops when evaluated on rewritten (L1-L4) feature spaces.
-- **H4: Differential biomarker vulnerability** -- Fluency, repetition, and word-finding markers degrade at lower intervention thresholds (L1-L2) than global discourse coherence markers (L3-L4).
-- **H5: Cross-backend consistency** -- Biomarker erasure behavior remains consistent across distinct LLM architectures and providers.
----
+- **H1: Progressive biomarker degradation** : Increasing rewrite intensity produces monotonically increasing deviation from baseline (L0) feature representations.
+- **H2: Semantic preservation with signal loss** : Semantic embeddings maintain high similarity across rewrites while structural and syntactic biomarkers undergo significant degradation.
+- **H3: Downstream classifier degradation** : Classifiers trained on baseline (L0) distributions suffer catastrophic performance drops when evaluated on rewritten (L1-L4) feature spaces.
+- **H4: Differential biomarker vulnerability** : Fluency, repetition, and word-finding markers degrade at lower intervention thresholds (L1-L2) than global discourse coherence markers (L3-L4).
+- **H5: Cross-backend consistency** : Biomarker erasure behavior remains consistent across distinct LLM architectures and providers.
+
+
 
 ---
 
