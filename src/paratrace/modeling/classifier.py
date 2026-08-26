@@ -1,4 +1,3 @@
-
 """
 classifier.py -- Diagnostic classification and degradation analysis.
 
@@ -142,11 +141,17 @@ def run_baseline(features_path: str) -> dict:
     return results
 
 
-# ── Degradation: train on L0, test on L1-L4 ───────────────────────────
+# ── Degradation: CV-aligned evaluation across L0-L4 ─────────────────
 
 def run_degradation(features_dir: str, output_dir: str) -> dict:
-    """Train best classifier on L0, evaluate on each rewrite level.
-    Produces the diagnostic degradation curve."""
+    """Measure diagnostic accuracy at each rewrite level using cross-validation.
+
+    Uses the same stratified 5-fold split for every level: each fold trains
+    on the L0 training rows and evaluates the held-out rows at L0 and at
+    every available rewrite level. This ensures the L0 baseline matches the
+    cross-validated accuracy (not inflated train-set accuracy) and the
+    degradation curve is measured on data the model never trained on.
+    """
     features_dir = Path(features_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -157,52 +162,70 @@ def run_degradation(features_dir: str, output_dir: str) -> dict:
     le = LabelEncoder()
     y = le.fit_transform(df_l0["diagnosis"])
 
-    # Train best model on full L0
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_l0)
+    log.info("Classes: %s", list(le.classes_))
+    log.info("Samples: %d", len(y))
 
-    # Use random forest as default (usually best on tabular data)
-    model = RandomForestClassifier(
-        n_estimators=200, max_depth=10, random_state=42,
-        class_weight="balanced",
-    )
-    model.fit(X_train, y)
-
-    # Evaluate on L0 (train set, for reference)
-    preds_l0 = model.predict(X_train)
-    log.info("L0 (train): acc=%.3f  F1=%.3f",
-             accuracy_score(y, preds_l0),
-             f1_score(y, preds_l0, average="macro"))
-
-    # Evaluate on each level
-    level_results = {"L0": {
-        "accuracy": float(accuracy_score(y, preds_l0)),
-        "macro_f1": float(f1_score(y, preds_l0, average="macro")),
-        "balanced_acc": float(balanced_accuracy_score(y, preds_l0)),
-    }}
-
+    # Pre-load all available rewrite-level feature matrices so every fold
+    # can index into them by row position.
+    rewrite_data: dict[str, np.ndarray] = {}
     for level in range(1, 5):
         for backend in ["anthropic", "openai"]:
             feat_file = features_dir / f"features_L{level}_{backend}.csv"
             if not feat_file.exists():
                 log.warning("  Missing: %s", feat_file)
                 continue
-
             df_lx = load_features(str(feat_file))
-            X_lx = scaler.transform(df_lx[FEATURE_COLS].values)
-            preds = model.predict(X_lx)
+            rewrite_data[f"L{level}_{backend}"] = df_lx[FEATURE_COLS].values
 
-            key = f"L{level}_{backend}"
-            level_results[key] = {
-                "accuracy": float(accuracy_score(y, preds)),
-                "macro_f1": float(f1_score(y, preds, average="macro")),
-                "balanced_acc": float(balanced_accuracy_score(y, preds)),
-                "confusion_matrix": confusion_matrix(y, preds).tolist(),
-            }
-            log.info("  %s: acc=%.3f  F1=%.3f",
-                     key,
-                     level_results[key]["accuracy"],
-                     level_results[key]["macro_f1"])
+    # Collect out-of-fold predictions per level
+    # key -> list of (y_true, y_pred) across all folds
+    all_preds: dict[str, tuple[list, list]] = {"L0": ([], [])}
+    for key in rewrite_data:
+        all_preds[key] = ([], [])
+
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    for fold, (train_idx, test_idx) in enumerate(skf.split(X_l0, y)):
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_l0[train_idx])
+        y_train = y[train_idx]
+
+        model = RandomForestClassifier(
+            n_estimators=200, max_depth=10, random_state=42,
+            class_weight="balanced",
+        )
+        model.fit(X_train, y_train)
+
+        # Evaluate held-out L0 rows
+        X_test_l0 = scaler.transform(X_l0[test_idx])
+        preds_l0 = model.predict(X_test_l0)
+        all_preds["L0"][0].extend(y[test_idx].tolist())
+        all_preds["L0"][1].extend(preds_l0.tolist())
+
+        # Evaluate the same held-out rows at each rewrite level
+        for key, X_full in rewrite_data.items():
+            X_test_lx = scaler.transform(X_full[test_idx])
+            preds_lx = model.predict(X_test_lx)
+            all_preds[key][0].extend(y[test_idx].tolist())
+            all_preds[key][1].extend(preds_lx.tolist())
+
+        log.info("  Fold %d complete", fold + 1)
+
+    # Aggregate results
+    level_results = {}
+    for key, (y_true, y_pred) in all_preds.items():
+        y_true_arr = np.array(y_true)
+        y_pred_arr = np.array(y_pred)
+        level_results[key] = {
+            "accuracy": float(accuracy_score(y_true_arr, y_pred_arr)),
+            "macro_f1": float(f1_score(y_true_arr, y_pred_arr, average="macro")),
+            "balanced_acc": float(balanced_accuracy_score(y_true_arr, y_pred_arr)),
+            "confusion_matrix": confusion_matrix(y_true_arr, y_pred_arr).tolist(),
+        }
+        log.info("  %s: acc=%.3f  F1=%.3f",
+                 key,
+                 level_results[key]["accuracy"],
+                 level_results[key]["macro_f1"])
 
     # Save results
     out_file = output_dir / "degradation_results.json"
