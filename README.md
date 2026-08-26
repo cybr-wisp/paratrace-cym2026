@@ -17,6 +17,8 @@
 
 </div>
 
+---
+
 ## 01. The Problem
 
 Ontario's [AI Scribe Program](https://www.supplyontario.ca/vor/software/tender-20123-artificial-intelligent-solutions-ai-scribe/) has pre-qualified 20+ vendors through Supply Ontario's VOR arrangement, with The Ottawa Hospital already deploying [Microsoft Dragon Copilot](https://www.ottawahospital.on.ca/en/patients-and-visitors/your-privacy-and-data/microsoft-dragon-copilot) to transform spontaneous patient speech into polished clinical documentation.
