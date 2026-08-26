@@ -67,103 +67,98 @@ All hypotheses, variables, and statistical tests were **pre-specified and frozen
 
 ---
 
+## 05. What We Found
 
+### 1. Diagnostic Signal Degradation
 
+<img src="assets/diagrams/diagnostic-degradation.png" alt="Diagnostic Signal Degradation Across Rewrite Levels" width="700">
 
+| Level  | Intervention | Description                             | Anthropic |   OpenAI  |  Average  |
+| :----- | :----------- | :-------------------------------------- | :-------: | :-------: | :-------: |
+| **L0** | Baseline     | Unaltered spontaneous transcript        | **73.4%** | **73.4%** | **73.4%** |
+| L1     | Grammar      | Punctuation and grammatical correction  |   68.8%   |   66.5%   |   67.7%   |
+| L2     | Paraphrase   | Filler removal and structural smoothing |   62.3%   |   56.9%   |   59.6%   |
+| **L3** | **Moderate** | **Clinical note restructuring**         | **51.8%** | **52.5%** | **52.2%** |
+| **L4** | **Full**     | **Complete prose reformulation**        | **54.2%** | **53.3%** | **53.8%** |
 
+**Key findings**
 
+* **Degradation begins at the lightest intervention level.** Grammar-only rewriting at L1 reduces average classification accuracy from **73.4% to 67.7%**.
 
----
+* **Stronger rewriting drives performance toward chance.** Mean accuracy falls to **59.6% at L2**, **52.2% at L3**, and **53.8% at L4**.
 
-## Experimental Design
+* **The effect appears across both evaluated backends.** Anthropic falls from **73.4% to 54.2%** at L4, while OpenAI falls from **73.4% to 53.3%**.
 
-<img src="assets/experimental_design.png" alt="Experimental Design" width="700">
+* **Feature drift emerges before classifier collapse.** At L2, **19 of 20 features** are significantly altered for Anthropic and **20 of 20 features** for OpenAI under Wilcoxon signed-rank testing with Benjamini-Hochberg FDR correction.
 
-**552** clinically labeled transcripts from the [DementiaBank Pitt Corpus](https://dementia.talkbank.org/) -- **243 Control**, **309 Dementia** -- processed through two LLM backends (GPT-4o-mini, Claude 3.5 Sonnet) at four progressive intervention levels. **4,416 total rewrites.** 20 linguistic biomarkers extracted across 8 clinically grounded categories using spaCy, sentence-transformers, and lexicalrichness.
-
-All hypotheses, variables, and statistical tests were **pre-registered before final analysis**. The complete frozen protocol is available in [`docs/protocol.md`](docs/protocol.md).
-
----
-
-## System Architecture
-
-<img src="assets/paratrace-architecture.png" alt="ParaTrace System Architecture" width="700">
-
----
-
-## What We Found
-
-### 1. Diagnostic Signal Erasure
-
-<img src="assets/degradation_curve.png" alt="Diagnostic Signal Degradation Across Rewrite Levels" width="700">
-
-| Level | Intervention | Description | Anthropic | OpenAI | Average |
-|:------|:-------------|:------------|:---------:|:------:|:-------:|
-| **L0** | Baseline | Unaltered spontaneous transcript | **73.4%** | **73.4%** | **73.4%** |
-| L1 | Grammar | Punctuation and grammatical correction | 68.8% | 66.5% | 67.7% |
-| L2 | Paraphrase | Filler removal, structural smoothing | 62.3% | 56.9% | 59.6% |
-| **L3** | **Moderate** | **Clinical note restructuring** | **51.8%** | **52.5%** | **52.2%** |
-| **L4** | **Full** | **Complete prose reformulation** | **54.2%** | **53.3%** | **53.8%** |
-
-**Key findings:**
-
-- **Degradation begins immediately.** Even grammar-only correction (L1) drops accuracy from 73.4% to 67.7%, confirming that disfluency markers carry diagnostic signal.
-- **L3/L4 converge to chance (~50%).** Both backends independently reach coin-flip accuracy, confirming the effect is **architecture-general**, not provider-specific.
-- **19 of 20 features significantly altered by L2.** Wilcoxon signed-rank tests with Benjamini-Hochberg FDR correction (p < 0.05). The single non-significant feature is incomplete-word rate.
-
-All levels evaluated using **stratified 5-fold cross-validation on held-out data** with identical fold assignments across L0 through L4. No train-set leakage.
+All levels were evaluated using **stratified 5-fold cross-validation**, with identical fold assignments across L0 through L4 and no train-set leakage.
 
 ### 2. The "What vs. How" Gap
 
-<img src="assets/what_vs_how.png" alt="The What vs How Gap" width="700">
+<img src="assets/diagrams/what-vs-how-gap.png" alt="The What vs How Gap" width="700">
 
-While diagnostic accuracy collapses toward random chance, **semantic cosine similarity remains above 83%**. The LLM faithfully preserves semantic content ("what") while erasing diagnostic structural signatures ("how").
+Even as downstream classification performance deteriorates, **semantic cosine similarity remains above 83%** across the evaluated rewrites.
+
+This exposes the central information-preservation gap measured by ParaTrace:
+
+> **The rewritten transcript can preserve what the patient says while progressively altering how it was originally expressed.**
+
+Semantic fidelity therefore does not necessarily imply preservation of the linguistic representation used by a downstream cognitive classifier.
 
 ### 3. Feature Importance
 
-<img src="assets/feature_importance.png" alt="Feature Importance" width="700">
+<img src="assets/diagrams/feature-importance.png" alt="Feature Importance Across Cognitive Linguistic Biomarkers" width="700">
 
-**Global coherence, pronoun-to-noun ratio, and CIU ratio** are the strongest diagnostic predictors -- precisely the features AI rewriting inflates most aggressively.
+The baseline classifier draws substantial predictive signal from features including **global coherence, pronoun-to-noun ratio, and CIU ratio**.
 
+These results help explain why aggressive rewriting can reduce downstream performance: the LLM is not simply changing surface wording. It is shifting features that contribute directly to the classifier's original decision boundary.
 
+---
 
- 
+## 06. Proposed Mitigation
 
+ParaTrace proposes a **pre-extraction architecture** that separates preservation of the original linguistic signal from generation of the polished clinical note.
 
+Instead of extracting downstream biomarkers from text after it has been rewritten, the proposed pipeline derives the linguistic representation from the original speech transcript first.
 
+<img src="assets/diagrams/pre-extraction-mitigation.png" alt="Proposed Pre-Extraction Mitigation Architecture" width="700">
 
-
-
-
-
-
-
-
-
-
-
-
-
-## The solution
-
-We propose a **pre-extraction architecture**: capture biomarker features from raw speech *before* AI rewriting, then pass both the polished clinical note and the preserved biomarker profile to the clinician.
-
-```
-Patient speaks
+```text
+Patient speech
       |
       v
-Raw ASR transcript (archived)
+Raw ASR transcript
       |
-      +---> Biomarker extraction (pre-AI) ---> Biomarker profile (100% signal)
-      |
-      v
-AI scribe rewrites for readability
+      +------> Pre-extraction ------> Preserved biomarker profile
       |
       v
-Clinician receives: polished note + biomarker profile + archived raw transcript
+LLM rewriting
+      |
+      v
+Polished clinical note
 ```
 
-Under this design, 100% of diagnostic signal is retained without sacrificing documentation readability.
+Under this architecture, the two outputs serve different purposes:
+
+* **Polished clinical note:** optimized for documentation readability and workflow efficiency.
+* **Preserved biomarker profile:** derived before LLM normalization and retained for downstream analysis.
+
+The design avoids requiring a rewritten clinical note to serve simultaneously as both a readable document and a faithful representation of spontaneous speech.
+
+### Current vs. Proposed Pipeline
+
+<img src="assets/diagrams/pre-extraction-comparison.png" alt="Comparison of Post-Rewrite and Pre-Extraction Pipelines" width="700">
+
+The proposed architecture remains a **mitigation hypothesis**, not a clinically validated deployment.
+
+ParaTrace demonstrates that linguistic rewriting can degrade downstream predictive signal and shows computationally why pre-extraction would preserve the original L0 feature representation. Further validation would be required before claiming clinical effectiveness, operational safety, or improved diagnostic outcomes.
+
+
+
+---
+
+
+
 
 ## Architecture
 
