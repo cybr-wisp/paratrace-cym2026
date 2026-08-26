@@ -20,13 +20,13 @@
 
 ## 01. The Problem:
  
-Healthcare systems are deploying **AI clinical scribes** (18 vendors approved in Ontario, DAX Copilot piloting at The Ottawa Hospital) to transform spontaneous patient speech into polished clinical documentation. At the same time, Canada's National Dementia Strategy prioritizes **early detection through computational speech analysis**.
+Ontario's [AI Scribe Program](https://www.supplyontario.ca/vor/software/tender-20123-artificial-intelligent-solutions-ai-scribe/) has pre-qualified 20+ vendors through Supply Ontario's VOR arrangement, with The Ottawa Hospital already deploying [Microsoft Dragon Copilot](https://www.ottawahospital.on.ca/en/patients-and-visitors/your-privacy-and-data/microsoft-dragon-copilot) to transform spontaneous patient speech into polished clinical documentation. At the same time, a growing body of research demonstrates that computational speech analysis can detect early cognitive decline using the linguistic structure of spontaneous speech.
  
-These two priorities are on a collision course. AI scribes are designed to normalize the exact speech patterns: fillers, repetitions, syntactic hesitations, reduced coherence -- that computational screening uses to detect cognitive decline. **No existing study has tested whether they are compatible.**
+These two priorities present a fundamental conflict. AI scribes are designed to normalize the exact speech patterns -- fillers, repetitions, syntactic hesitations, reduced coherence -- that computational cognitive classifiers rely on for detection. Prior work has shown that removing verbal disfluencies alone can reduce automated dementia-detection accuracy by up to 5.6 percentage points (Farzana et al., 2022).
  
 > **A language model rewrite can preserve *what* a patient says while systematically erasing *how* they say it.**
  
-If downstream diagnostic algorithms evaluate rewritten notes rather than raw transcripts, semantic fidelity alone is insufficient to retain predictive signal. ParaTrace measures this failure mode by treating LLM rewriting as a controlled source of distribution shift across clinically validated linguistic biomarkers.
+If downstream diagnostic algorithms evaluate rewritten notes rather than raw transcripts, semantic fidelity alone is insufficient to retain predictive signal. ParaTrace extends prior disfluency-removal findings to contemporary LLM-mediated rewriting, measuring whether progressively stronger semantic-preserving transformations alter a broader cognitive-linguistic feature representation and its downstream predictive utility.
 
  
 ## 02. Research Question: 
@@ -41,6 +41,28 @@ The protocol, experimental variables, evaluation procedures, and statistical tes
 - **H3: Downstream classifier degradation** : Classifiers trained on baseline (L0) distributions suffer catastrophic performance drops when evaluated on rewritten (L1-L4) feature spaces.
 - **H4: Differential biomarker vulnerability** : Fluency, repetition, and word-finding markers degrade at lower intervention thresholds (L1-L2) than global discourse coherence markers (L3-L4).
 - **H5: Cross-backend consistency** : Biomarker erasure behavior remains consistent across distinct LLM architectures and providers.
+
+
+## 04. Experimental Design
+ 
+<img src="assets/experimental-pipeline-architecture.png" alt="Experimental Design" width="700">
+**552** clinically labeled transcripts from the [DementiaBank Pitt Corpus](https://dementia.talkbank.org/) -- **243 Control**, **309 Dementia** -- processed through two LLM backends (GPT-4o-mini, Claude 3.5 Sonnet) at four progressive intervention levels. **4,416 total rewrites.** 20 linguistic biomarkers extracted across 8 clinically grounded categories using spaCy, sentence-transformers, and lexicalrichness.
+ 
+All hypotheses, variables, and statistical tests were **pre-registered before final analysis**. The complete frozen protocol is available in [`docs/protocol.md`](docs/protocol.md).
+ 
+### System Architecture
+ 
+<img src="assets/system-architecture.png" alt="ParaTrace System Architecture" width="700">
+
+
+
+
+--
+
+
+
+
+
 
 
 
