@@ -4,120 +4,140 @@
       "pct_change": -0.12,
       "cohens_d": 0.173,
       "p_value": 2.8e-05,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": -0.4,
       "cohens_d": 0.096,
       "p_value": 0.205182,
+      "significant_raw": false,
       "significant": false
     },
     "mattr": {
       "pct_change": -0.05,
       "cohens_d": 0.114,
       "p_value": 0.001749,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": 0.37,
       "cohens_d": -0.039,
       "p_value": 0.811993,
+      "significant_raw": false,
       "significant": false
     },
     "bigram_repetition_rate": {
       "pct_change": 0.78,
       "cohens_d": -0.135,
       "p_value": 0.287508,
+      "significant_raw": false,
       "significant": false
     },
     "unique_word_ratio": {
       "pct_change": -0.13,
       "cohens_d": 0.18,
       "p_value": 2.1e-05,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": 15.67,
       "cohens_d": -0.318,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 27.31,
       "cohens_d": -1.421,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -40.98,
       "cohens_d": 0.512,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 103.07,
       "cohens_d": -1.086,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 352.23,
       "cohens_d": -0.847,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 753.25,
       "cohens_d": -0.785,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": -0.03,
       "cohens_d": 0.008,
       "p_value": 0.746453,
+      "significant_raw": false,
       "significant": false
     },
     "filler_rate": {
       "pct_change": 4.54,
       "cohens_d": -0.135,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
+      "significant_raw": false,
       "significant": false
     },
     "mean_utterance_length": {
       "pct_change": 1151.34,
       "cohens_d": -1.738,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": 0.03,
       "cohens_d": -0.11,
       "p_value": 0.010359,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": -0.32,
       "cohens_d": 0.067,
       "p_value": 0.129441,
+      "significant_raw": false,
       "significant": false
     },
     "ciu_ratio": {
       "pct_change": -0.55,
       "cohens_d": 0.235,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": 0.51,
       "cohens_d": -0.071,
       "p_value": 0.19627,
+      "significant_raw": false,
       "significant": false
     }
   },
@@ -126,120 +146,140 @@
       "pct_change": -0.07,
       "cohens_d": 0.069,
       "p_value": 0.101138,
+      "significant_raw": false,
       "significant": false
     },
     "mtld": {
       "pct_change": 0.14,
       "cohens_d": -0.024,
       "p_value": 0.676356,
+      "significant_raw": false,
       "significant": false
     },
     "mattr": {
       "pct_change": -0.02,
       "cohens_d": 0.028,
       "p_value": 0.724774,
+      "significant_raw": false,
       "significant": false
     },
     "content_word_repetition_rate": {
       "pct_change": 0.89,
       "cohens_d": -0.091,
       "p_value": 0.247785,
+      "significant_raw": false,
       "significant": false
     },
     "bigram_repetition_rate": {
       "pct_change": 1.27,
       "cohens_d": -0.158,
       "p_value": 0.057724,
+      "significant_raw": false,
       "significant": false
     },
     "unique_word_ratio": {
       "pct_change": -0.14,
       "cohens_d": 0.142,
       "p_value": 0.000552,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": 18.65,
       "cohens_d": -0.39,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 29.21,
       "cohens_d": -1.613,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -42.21,
       "cohens_d": 0.515,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 112.89,
       "cohens_d": -1.223,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 347.91,
       "cohens_d": -1.015,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 759.29,
       "cohens_d": -0.968,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": -0.03,
       "cohens_d": 0.009,
       "p_value": 0.632403,
+      "significant_raw": false,
       "significant": false
     },
     "filler_rate": {
       "pct_change": 3.45,
       "cohens_d": -0.123,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
+      "significant_raw": false,
       "significant": false
     },
     "mean_utterance_length": {
       "pct_change": 1149.73,
       "cohens_d": -1.742,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": 0.01,
       "cohens_d": -0.017,
       "p_value": 0.611377,
+      "significant_raw": false,
       "significant": false
     },
     "honores_r": {
       "pct_change": 0.03,
       "cohens_d": -0.002,
       "p_value": 0.202276,
+      "significant_raw": false,
       "significant": false
     },
     "ciu_ratio": {
       "pct_change": -0.7,
       "cohens_d": 0.273,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": 0.97,
       "cohens_d": -0.119,
       "p_value": 0.006591,
+      "significant_raw": true,
       "significant": true
     }
   },
@@ -248,120 +288,140 @@
       "pct_change": 8.9,
       "cohens_d": -0.808,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": 21.66,
       "cohens_d": -0.463,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mattr": {
       "pct_change": 3.31,
       "cohens_d": -0.597,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": -20.69,
       "cohens_d": 0.477,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "bigram_repetition_rate": {
       "pct_change": -25.24,
       "cohens_d": 0.409,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "unique_word_ratio": {
       "pct_change": 5.25,
       "cohens_d": -0.473,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": -14.49,
       "cohens_d": 0.372,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 14.56,
       "cohens_d": -1.168,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -36.46,
       "cohens_d": 0.434,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 50.18,
       "cohens_d": -1.739,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 93.48,
       "cohens_d": -1.684,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 169.6,
       "cohens_d": -1.132,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": 4.05,
       "cohens_d": -0.384,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "filler_rate": {
       "pct_change": -40.01,
       "cohens_d": 0.271,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": -0.06,
       "p_value": 0.179712,
+      "significant_raw": false,
       "significant": false
     },
     "mean_utterance_length": {
       "pct_change": 978.51,
       "cohens_d": -1.92,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": -4.99,
       "cohens_d": 0.853,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": 18.87,
       "cohens_d": -0.226,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "ciu_ratio": {
       "pct_change": 3.79,
       "cohens_d": -0.345,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": -28.56,
       "cohens_d": 0.737,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     }
   },
@@ -370,120 +430,140 @@
       "pct_change": 14.7,
       "cohens_d": -1.374,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": 42.06,
       "cohens_d": -0.875,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mattr": {
       "pct_change": 5.62,
       "cohens_d": -1.008,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": -36.94,
       "cohens_d": 0.86,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "bigram_repetition_rate": {
       "pct_change": -47.84,
       "cohens_d": 0.842,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "unique_word_ratio": {
       "pct_change": 9.81,
       "cohens_d": -0.912,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": -7.84,
       "cohens_d": 0.199,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 17.41,
       "cohens_d": -1.374,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -35.42,
       "cohens_d": 0.425,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 57.54,
       "cohens_d": -2.094,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 96.23,
       "cohens_d": -2.581,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 202.22,
       "cohens_d": -1.717,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": 8.01,
       "cohens_d": -0.582,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "filler_rate": {
       "pct_change": -58.61,
       "cohens_d": 0.374,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
-      "significant": false
+      "significant_raw": false,
+      "significant": true
     },
     "mean_utterance_length": {
       "pct_change": 970.82,
       "cohens_d": -2.009,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": -5.13,
       "cohens_d": 0.897,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": 45.3,
       "cohens_d": -0.411,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "ciu_ratio": {
       "pct_change": 7.94,
       "cohens_d": -0.508,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": -28.11,
       "cohens_d": 0.648,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     }
   },
@@ -492,120 +572,140 @@
       "pct_change": 16.31,
       "cohens_d": -1.211,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": 48.02,
       "cohens_d": -1.006,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mattr": {
       "pct_change": 6.55,
       "cohens_d": -0.957,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": -46.95,
       "cohens_d": 0.815,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "bigram_repetition_rate": {
       "pct_change": -58.43,
       "cohens_d": 0.891,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "unique_word_ratio": {
       "pct_change": 11.7,
       "cohens_d": -0.88,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": -0.97,
       "cohens_d": 0.024,
       "p_value": 0.940251,
+      "significant_raw": false,
       "significant": false
     },
     "global_coherence": {
       "pct_change": 20.81,
       "cohens_d": -1.642,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -41.08,
       "cohens_d": 0.512,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 72.51,
       "cohens_d": -2.332,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 115.1,
       "cohens_d": -2.698,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 253.75,
       "cohens_d": -1.841,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": 16.99,
       "cohens_d": -1.13,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "filler_rate": {
       "pct_change": -93.57,
       "cohens_d": 0.576,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
+      "significant_raw": false,
       "significant": false
     },
     "mean_utterance_length": {
       "pct_change": 1015.05,
       "cohens_d": -1.945,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": -3.71,
       "cohens_d": 0.465,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": 74.86,
       "cohens_d": -0.546,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "ciu_ratio": {
       "pct_change": 15.34,
       "cohens_d": -1.016,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": -52.54,
       "cohens_d": 0.944,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     }
   },
@@ -614,120 +714,140 @@
       "pct_change": 18.17,
       "cohens_d": -1.56,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": 55.79,
       "cohens_d": -1.266,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mattr": {
       "pct_change": 7.32,
       "cohens_d": -1.237,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": -49.01,
       "cohens_d": 0.984,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "bigram_repetition_rate": {
       "pct_change": -62.21,
       "cohens_d": 1.011,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "unique_word_ratio": {
       "pct_change": 13.35,
       "cohens_d": -1.135,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": -5.77,
       "cohens_d": 0.157,
       "p_value": 0.000112,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 19.3,
       "cohens_d": -1.587,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -41.56,
       "cohens_d": 0.521,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 64.19,
       "cohens_d": -2.219,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 97.74,
       "cohens_d": -2.876,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 213.79,
       "cohens_d": -1.924,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": 16.96,
       "cohens_d": -1.086,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "filler_rate": {
       "pct_change": -83.58,
       "cohens_d": 0.498,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
+      "significant_raw": false,
       "significant": false
     },
     "mean_utterance_length": {
       "pct_change": 961.04,
       "cohens_d": -2.084,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": -4.5,
       "cohens_d": 0.679,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": 77.94,
       "cohens_d": -0.571,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "ciu_ratio": {
       "pct_change": 15.72,
       "cohens_d": -0.984,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": -42.34,
       "cohens_d": 0.837,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     }
   },
@@ -736,120 +856,140 @@
       "pct_change": 16.69,
       "cohens_d": -1.335,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": 161.58,
       "cohens_d": -2.509,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mattr": {
       "pct_change": 11.61,
       "cohens_d": -1.798,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": -59.13,
       "cohens_d": 1.081,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "bigram_repetition_rate": {
       "pct_change": -66.15,
       "cohens_d": 1.032,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "unique_word_ratio": {
       "pct_change": 12.08,
       "cohens_d": -0.963,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": 18.09,
       "cohens_d": -0.504,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 23.61,
       "cohens_d": -2.108,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -48.97,
       "cohens_d": 0.659,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 143.18,
       "cohens_d": -3.653,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 232.39,
       "cohens_d": -4.007,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 443.46,
       "cohens_d": -2.671,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": 34.28,
       "cohens_d": -2.304,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "filler_rate": {
       "pct_change": -99.05,
       "cohens_d": 0.592,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
-      "significant": false
+      "significant_raw": false,
+      "significant": true
     },
     "mean_utterance_length": {
       "pct_change": 1877.42,
       "cohens_d": -2.547,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": 8.73,
       "cohens_d": -0.943,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": 217.41,
       "cohens_d": -1.006,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "ciu_ratio": {
       "pct_change": 32.41,
       "cohens_d": -2.14,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": -53.43,
       "cohens_d": 0.84,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     }
   },
@@ -858,120 +998,140 @@
       "pct_change": 18.51,
       "cohens_d": -1.522,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mtld": {
       "pct_change": 150.73,
       "cohens_d": -2.432,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mattr": {
       "pct_change": 10.57,
       "cohens_d": -1.611,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "content_word_repetition_rate": {
       "pct_change": -72.69,
       "cohens_d": 1.355,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "bigram_repetition_rate": {
       "pct_change": -71.11,
       "cohens_d": 1.151,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "unique_word_ratio": {
       "pct_change": 13.66,
       "cohens_d": -1.132,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "local_coherence": {
       "pct_change": 16.46,
       "cohens_d": -0.527,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "global_coherence": {
       "pct_change": 24.84,
       "cohens_d": -2.358,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "coherence_variance": {
       "pct_change": -59.86,
       "cohens_d": 0.839,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_parse_depth": {
       "pct_change": 121.58,
       "cohens_d": -3.61,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "mean_sentence_length": {
       "pct_change": 204.84,
       "cohens_d": -4.279,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "clause_density": {
       "pct_change": 388.52,
       "cohens_d": -2.777,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "idea_density": {
       "pct_change": 38.16,
       "cohens_d": -2.694,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "filler_rate": {
       "pct_change": -92.98,
       "cohens_d": 0.541,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "incomplete_word_rate": {
       "pct_change": 0.0,
       "cohens_d": 0.0,
       "p_value": NaN,
-      "significant": false
+      "significant_raw": false,
+      "significant": true
     },
     "mean_utterance_length": {
       "pct_change": 1657.64,
       "cohens_d": -2.515,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "brunets_w": {
       "pct_change": 6.78,
       "cohens_d": -0.785,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "honores_r": {
       "pct_change": 279.12,
       "cohens_d": -0.948,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "ciu_ratio": {
       "pct_change": 36.33,
       "cohens_d": -2.486,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     },
     "pronoun_noun_ratio": {
       "pct_change": -56.81,
       "cohens_d": 0.942,
       "p_value": 0.0,
+      "significant_raw": true,
       "significant": true
     }
   }

@@ -309,9 +309,35 @@ def compute_brr(features_dir: str, output_dir: str) -> dict:
 
 # ── Per-feature statistical tests ──────────────────────────────────────
 
+def _benjamini_hochberg(p_values: list[float], alpha: float = 0.05) -> list[bool]:
+    """Benjamini-Hochberg FDR correction. Returns a boolean mask of which
+    tests remain significant after controlling the false discovery rate."""
+    n = len(p_values)
+    if n == 0:
+        return []
+    indexed = sorted(enumerate(p_values), key=lambda x: x[1])
+    significant = [False] * n
+    # Walk from largest to smallest p-value, tracking the running threshold
+    prev_significant = False
+    for rank_minus_1 in range(n - 1, -1, -1):
+        orig_idx, pval = indexed[rank_minus_1]
+        rank = rank_minus_1 + 1
+        threshold = (rank / n) * alpha
+        if pval <= threshold or prev_significant:
+            significant[orig_idx] = True
+            prev_significant = True
+    return significant
+
+
 def run_stats(features_dir: str, output_dir: str) -> dict:
     """Wilcoxon signed-rank tests and Cohen's d for each feature
-    comparing L0 to each rewrite level."""
+    comparing L0 to each rewrite level.
+
+    Applies Benjamini-Hochberg FDR correction across all tests within
+    each level-backend group (20 features) to control for multiple
+    comparisons. Both the raw p-value and the FDR-corrected significance
+    flag are reported.
+    """
     features_dir = Path(features_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -327,8 +353,9 @@ def run_stats(features_dir: str, output_dir: str) -> dict:
 
             df_lx = load_features(str(feat_file))
             key = f"L{level}_{backend}"
-            results[key] = {}
 
+            # First pass: compute raw p-values and effect sizes
+            raw_results = []
             for feat in FEATURE_COLS:
                 orig = df_l0[feat].values
                 rewr = df_lx[feat].values
@@ -348,16 +375,32 @@ def run_stats(features_dir: str, output_dir: str) -> dict:
                 rewr_mean = np.mean(rewr)
                 pct = ((rewr_mean - orig_mean) / abs(orig_mean) * 100) if orig_mean != 0 else 0
 
-                results[key][feat] = {
+                raw_results.append({
+                    "feat": feat,
                     "pct_change": round(float(pct), 2),
                     "cohens_d": round(float(d), 3),
                     "p_value": round(float(pval), 6),
-                    "significant": bool(pval < 0.05),
+                    "significant_raw": bool(pval < 0.05),
+                })
+
+            # Second pass: apply Benjamini-Hochberg correction
+            p_values = [r["p_value"] for r in raw_results]
+            bh_mask = _benjamini_hochberg(p_values, alpha=0.05)
+
+            results[key] = {}
+            for r, sig_bh in zip(raw_results, bh_mask):
+                results[key][r["feat"]] = {
+                    "pct_change": r["pct_change"],
+                    "cohens_d": r["cohens_d"],
+                    "p_value": r["p_value"],
+                    "significant_raw": r["significant_raw"],
+                    "significant": bool(sig_bh),  # FDR-corrected
                 }
 
-            sig_count = sum(1 for f in results[key].values() if f["significant"])
-            log.info("  %s: %d / %d features significantly changed",
-                     key, sig_count, len(FEATURE_COLS))
+            sig_raw = sum(1 for r in raw_results if r["significant_raw"])
+            sig_bh = sum(1 for s in bh_mask if s)
+            log.info("  %s: %d / %d significant (raw), %d / %d (BH-corrected)",
+                     key, sig_raw, len(FEATURE_COLS), sig_bh, len(FEATURE_COLS))
 
     out_file = output_dir / "statistical_tests.json"
     with out_file.open("w") as f:
