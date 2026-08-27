@@ -249,7 +249,7 @@ python src/paratrace/analysis/solution.py \
   --output data/results/
 ```
 
-See **[TECHSTACK.md](TECHSTACK.md)** for the complete architecture, dependencies, technology badges, and the role each technology plays in the system.
+See **[TECHSTACK.md](docs/techstack.md)** for the complete architecture, dependencies, technology badges, and the role each technology plays in the system.
 
 
 ---
