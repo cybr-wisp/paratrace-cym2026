@@ -4,7 +4,7 @@
 
 ### Measuring Linguistic Biomarker Degradation Under LLM Rewriting of Clinical Speech
 
-**A controlled computational study evaluating whether language-model rewriting preserves linguistic features used in cognitive-status classification.**
+**A controlled computational study evaluating whether language-model rewriting preserves linguistic features used in cognitive-status classification.** Explore the interactive results live at: https://paratrace-production.up.railway.app/
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
