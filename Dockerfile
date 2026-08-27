@@ -23,7 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 # App code
 COPY src/ ./src/
 COPY api/ ./api/
-COPY configs/ ./configs/
 COPY data/results/ ./data/results/
 
 # Built frontend from stage 1
