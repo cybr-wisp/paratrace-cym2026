@@ -6,6 +6,8 @@
 
 **A controlled computational study evaluating whether language-model rewriting preserves linguistic features used in cognitive-status classification.**
 
+See **[TECHSTACK.md](TECHSTACK.md)** for the complete architecture, dependencies, technology badges, and the role each technology plays in the system.
+
 ![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Conference](https://img.shields.io/badge/Conference-CYM%202026-orange)
