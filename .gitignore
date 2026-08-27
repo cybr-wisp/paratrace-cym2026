@@ -9,7 +9,7 @@ data/results/*.joblib
 
 # ── Python ──
 .env
-venv/
+venv*/
 __pycache__/
 *.pyc
 *.pyo
