@@ -1,0 +1,289 @@
+{
+  "experiment": "ParaTrace",
+  "dataset": {
+    "transcripts": 552,
+    "participants": 292,
+    "control_transcripts": 243,
+    "dementia_transcripts": 309,
+    "rewritten_samples": 4416
+  },
+  "rewrite_levels": {
+    "L0": "original",
+    "L1": "grammar correction",
+    "L2": "light paraphrase",
+    "L3": "moderate rewrite",
+    "L4": "full reformulation"
+  },
+  "classification": {
+    "L0": {
+      "accuracy": 0.717391304347826,
+      "macro_f1": 0.7152380952380952,
+      "balanced_acc": 0.7172479923288985,
+      "confusion_matrix": [
+        [
+          174,
+          69
+        ],
+        [
+          87,
+          222
+        ]
+      ]
+    },
+    "L1_anthropic": {
+      "accuracy": 0.6557971014492754,
+      "macro_f1": 0.6557790264139054,
+      "balanced_acc": 0.6661872228215271,
+      "confusion_matrix": [
+        [
+          183,
+          60
+        ],
+        [
+          130,
+          179
+        ]
+      ]
+    },
+    "L1_openai": {
+      "accuracy": 0.644927536231884,
+      "macro_f1": 0.6448855803694513,
+      "balanced_acc": 0.6555995045746934,
+      "confusion_matrix": [
+        [
+          181,
+          62
+        ],
+        [
+          134,
+          175
+        ]
+      ]
+    },
+    "L2_anthropic": {
+      "accuracy": 0.6159420289855072,
+      "macro_f1": 0.6110350329056704,
+      "balanced_acc": 0.6384993407647129,
+      "confusion_matrix": [
+        [
+          201,
+          42
+        ],
+        [
+          170,
+          139
+        ]
+      ]
+    },
+    "L2_openai": {
+      "accuracy": 0.5235507246376812,
+      "macro_f1": 0.5184156839329253,
+      "balanced_acc": 0.5436693435614687,
+      "confusion_matrix": [
+        [
+          173,
+          70
+        ],
+        [
+          193,
+          116
+        ]
+      ]
+    },
+    "L3_anthropic": {
+      "accuracy": 0.4927536231884058,
+      "macro_f1": 0.4858420268256334,
+      "balanced_acc": 0.5139638019896919,
+      "confusion_matrix": [
+        [
+          168,
+          75
+        ],
+        [
+          205,
+          104
+        ]
+      ]
+    },
+    "L3_openai": {
+      "accuracy": 0.5054347826086957,
+      "macro_f1": 0.5004756711604056,
+      "balanced_acc": 0.5248511726397379,
+      "confusion_matrix": [
+        [
+          167,
+          76
+        ],
+        [
+          197,
+          112
+        ]
+      ]
+    },
+    "L4_anthropic": {
+      "accuracy": 0.48188405797101447,
+      "macro_f1": 0.47341596509719686,
+      "balanced_acc": 0.47349075072915414,
+      "confusion_matrix": [
+        [
+          98,
+          145
+        ],
+        [
+          141,
+          168
+        ]
+      ]
+    },
+    "L4_openai": {
+      "accuracy": 0.4855072463768116,
+      "macro_f1": 0.48305744245861637,
+      "balanced_acc": 0.48419832993727274,
+      "confusion_matrix": [
+        [
+          115,
+          128
+        ],
+        [
+          156,
+          153
+        ]
+      ]
+    }
+  },
+  "feature_significance": {
+    "L1_anthropic": {
+      "significant_features": 13,
+      "total_features": 20
+    },
+    "L1_openai": {
+      "significant_features": 11,
+      "total_features": 20
+    },
+    "L2_anthropic": {
+      "significant_features": 19,
+      "total_features": 20
+    },
+    "L2_openai": {
+      "significant_features": 19,
+      "total_features": 20
+    },
+    "L3_anthropic": {
+      "significant_features": 18,
+      "total_features": 20
+    },
+    "L3_openai": {
+      "significant_features": 19,
+      "total_features": 20
+    },
+    "L4_anthropic": {
+      "significant_features": 19,
+      "total_features": 20
+    },
+    "L4_openai": {
+      "significant_features": 19,
+      "total_features": 20
+    }
+  },
+  "semantic_similarity": {
+    "anthropic": {
+      "L1": {
+        "n": 552,
+        "models": [
+          "claude-sonnet-4-6"
+        ],
+        "mean_cosine_similarity": 0.9815009236335754,
+        "median_cosine_similarity": 0.9897460341453552,
+        "min_cosine_similarity": 0.8964108228683472,
+        "max_cosine_similarity": 1.000000238418579
+      },
+      "L2": {
+        "n": 552,
+        "models": [
+          "claude-sonnet-4-6"
+        ],
+        "mean_cosine_similarity": 0.8638700246810913,
+        "median_cosine_similarity": 0.8748400211334229,
+        "min_cosine_similarity": 0.45573973655700684,
+        "max_cosine_similarity": 0.9751713275909424
+      },
+      "L3": {
+        "n": 552,
+        "models": [
+          "claude-sonnet-4-6"
+        ],
+        "mean_cosine_similarity": 0.7745214104652405,
+        "median_cosine_similarity": 0.7843592762947083,
+        "min_cosine_similarity": 0.3028888702392578,
+        "max_cosine_similarity": 0.9391794204711914
+      },
+      "L4": {
+        "n": 552,
+        "models": [
+          "claude-sonnet-4-6"
+        ],
+        "mean_cosine_similarity": 0.6853311061859131,
+        "median_cosine_similarity": 0.6907992362976074,
+        "min_cosine_similarity": 0.2812381982803345,
+        "max_cosine_similarity": 0.8496688008308411
+      }
+    },
+    "openai": {
+      "L1": {
+        "n": 552,
+        "models": [
+          "gpt-4o-mini-2024-07-18"
+        ],
+        "mean_cosine_similarity": 0.9876300096511841,
+        "median_cosine_similarity": 0.9987740516662598,
+        "min_cosine_similarity": 0.8867068290710449,
+        "max_cosine_similarity": 1.000000238418579
+      },
+      "L2": {
+        "n": 552,
+        "models": [
+          "gpt-4o-mini-2024-07-18"
+        ],
+        "mean_cosine_similarity": 0.8487032651901245,
+        "median_cosine_similarity": 0.8598376512527466,
+        "min_cosine_similarity": 0.5111088156700134,
+        "max_cosine_similarity": 0.955005407333374
+      },
+      "L3": {
+        "n": 552,
+        "models": [
+          "gpt-4o-mini-2024-07-18"
+        ],
+        "mean_cosine_similarity": 0.8135308623313904,
+        "median_cosine_similarity": 0.8275394439697266,
+        "min_cosine_similarity": 0.4964265823364258,
+        "max_cosine_similarity": 0.9348446726799011
+      },
+      "L4": {
+        "n": 552,
+        "models": [
+          "gpt-4o-mini-2024-07-18"
+        ],
+        "mean_cosine_similarity": 0.6657573580741882,
+        "median_cosine_similarity": 0.6743487119674683,
+        "min_cosine_similarity": 0.31941378116607666,
+        "max_cosine_similarity": 0.850648045539856
+      }
+    }
+  },
+  "key_results": {
+    "baseline_L0_accuracy": 0.717391304347826,
+    "baseline_L0_balanced_accuracy": 0.7172479923288985,
+    "L4_mean_accuracy": 0.483695652173913,
+    "L4_mean_balanced_accuracy": 0.47884454033321344,
+    "L2_anthropic_significant_features": 19,
+    "L2_openai_significant_features": 19,
+    "L2_anthropic_semantic_similarity": 0.8638700246810913,
+    "L2_openai_semantic_similarity": 0.8487032651901245
+  },
+  "mitigation": {
+    "name": "pre-extraction architecture",
+    "description": "Derive and retain linguistic representations from the original speech before generative rewriting, rather than depending on features extracted from transformed text.",
+    "status": "Mitigation hypothesis motivated by the degradation experiment; not independently clinically validated."
+  }
+}
