@@ -14,6 +14,7 @@
 ![Sentence Transformers](https://img.shields.io/badge/Sentence%20Transformers-FFD43B?logo=huggingface&logoColor=black)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
+[![Cohere](https://img.shields.io/badge/Cohere-39594D?logo=cohere&logoColor=white)](https://cohere.com)
 
 </div>
 
@@ -34,6 +35,7 @@ Prior work has already shown that removing verbal disfluencies alone can reduce 
 If downstream diagnostic or analytical systems evaluate rewritten notes rather than the original speech representation, semantic fidelity alone may not be sufficient to retain predictive signal.
 
 ParaTrace extends prior disfluency-removal findings to contemporary LLM-mediated rewriting by measuring whether progressively stronger, semantically preserving transformations alter a broader cognitive-linguistic feature representation and its downstream predictive utility.
+
 
 ---
 
@@ -88,6 +90,7 @@ All hypotheses, variables, and statistical tests were **pre-specified and frozen
 | L2     | Paraphrase   | Filler removal and structural smoothing |   62.3%   |   56.9%   |   59.6%   |
 | **L3** | **Moderate** | **Clinical note restructuring**         | **51.8%** | **52.5%** | **52.2%** |
 | **L4** | **Full**     | **Complete prose reformulation**        | **54.2%** | **53.3%** | **53.8%** |
+| Cohere evaluation | `experiments/cohere_eval.py` | Embed-english-v3.0 drop-in replacement for coherence features, cross-architecture validation |
 
 **Key findings**
 
