@@ -283,47 +283,47 @@ See **[TECHSTACK.md](docs/techstack.md)** for the complete architecture, depende
 
 ```text
 paratrace-cym2026/
-│
-├── api/
-│   └── main.py
-│
-├── assets/
-│   └── diagrams/
-│       ├── diagnostic-degradation.png
-│       ├── experimental-pipeline-architecture.png
-│       ├── feature-importance.png
-│       ├── pre-extraction-comparison.png
-│       ├── pre-extraction-mitigation.png
-│       ├── system-architecture.png
-│       └── what-vs-how-gap.png
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   ├── rewrites/
-│   └── results/
-│
-├── docs/
-│   ├── protocol.md
-│   └── research_doc.md
-│
-├── frontend/
-│   └── src/
-│
-├── src/
-│   └── paratrace/
-│       ├── analysis/
-│       ├── features/
-│       ├── ingestion/
-│       ├── modeling/
-│       └── rewriting/
-│
-├── .env.example
-├── Dockerfile
-├── Makefile
-├── pyproject.toml
-├── requirements.txt
-└── README.md
+â”‚
+â”œâ”€â”€ api/
+â”‚   â””â”€â”€ main.py
+â”‚
+â”œâ”€â”€ assets/
+â”‚   â””â”€â”€ diagrams/
+â”‚       â”œâ”€â”€ diagnostic-degradation.png
+â”‚       â”œâ”€â”€ experimental-pipeline-architecture.png
+â”‚       â”œâ”€â”€ feature-importance.png
+â”‚       â”œâ”€â”€ pre-extraction-comparison.png
+â”‚       â”œâ”€â”€ pre-extraction-mitigation.png
+â”‚       â”œâ”€â”€ system-architecture.png
+â”‚       â””â”€â”€ what-vs-how-gap.png
+â”‚
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ raw/
+â”‚   â”œâ”€â”€ processed/
+â”‚   â”œâ”€â”€ rewrites/
+â”‚   â””â”€â”€ results/
+â”‚
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ protocol.md
+â”‚   â””â”€â”€ research_doc.md
+â”‚
+â”œâ”€â”€ frontend/
+â”‚   â””â”€â”€ src/
+â”‚
+â”œâ”€â”€ src/
+â”‚   â””â”€â”€ paratrace/
+â”‚       â”œâ”€â”€ analysis/
+â”‚       â”œâ”€â”€ features/
+â”‚       â”œâ”€â”€ ingestion/
+â”‚       â”œâ”€â”€ modeling/
+â”‚       â””â”€â”€ rewriting/
+â”‚
+â”œâ”€â”€ .env.example
+â”œâ”€â”€ Dockerfile
+â”œâ”€â”€ Makefile
+â”œâ”€â”€ pyproject.toml
+â”œâ”€â”€ requirements.txt
+â””â”€â”€ README.md
 ```
 
 ## Data Availability
@@ -362,6 +362,6 @@ If you use ParaTrace in research or derivative work:
 
 <div align="center">
 
-Built with ☕ by [Marie](https://github.com/cybr-wisp)
+Built with â˜• by [Marie](https://github.com/cybr-wisp)
 
 </div>
